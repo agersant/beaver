@@ -1,0 +1,35 @@
+{
+	"version": "0.1.0",
+	"showOutput": "always",
+
+    "tasks": [
+
+		// Launch game
+		{
+			"taskName": "Run",
+			"options": { "cwd": "${workspaceRoot}\\game" },
+			"command": "love",
+			"args": ["."]
+		},
+
+		// Run unit tests
+        {
+			"isTestCommand": true,
+			"taskName": "Test",
+			"options": { "cwd": "${workspaceRoot}\\game" },
+			"command": "love",
+			"args": [".", "/test"],
+			"problemMatcher": {
+				"owner": "lua",
+				"fileLocation": ["relative", "${workspaceRoot}\\game"],
+				"pattern": {
+					"regexp": "^(.*):(\\d+):\\s+(.*)$",
+					"file": 1,
+					"line": 2,
+					"message": 3
+				}
+			}
+        }
+
+    ]
+}
