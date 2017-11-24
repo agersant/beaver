@@ -1,5 +1,6 @@
 require( "src/utils/OOP" );
 local Log = require( "src/dev/Log" );
+local Input = require( "src/input/Input" );
 local Assets = require( "src/resources/Assets" );
 local Colors = require( "src/resources/Colors" );
 local Camera = require( "src/scene/Camera" );
@@ -23,6 +24,17 @@ local removeDespawnedEntitiesFrom = function( self, list )
 	end
 end
 
+local handleInput = function( self )
+	local inputDevice = Input:getDevice( 1 );
+	for _, commandEvent in inputDevice:pollEvents() do
+		if commandEvent == "+zoomIn" then
+			self._camera:zoomIn();
+		elseif commandEvent == "+zoomOut" then
+			self._camera:zoomOut();
+		end
+	end
+end
+
 
 
 -- PUBLIC API
@@ -40,13 +52,14 @@ MapScene.init = function( self, mapName )
 	self._mapName = mapName;
 	self._map = Assets:getMap( mapName );
 
-	-- local mapWidth = self._map:getWidthInPixels();
-	-- local mapHeight = self._map:getHeightInPixels();
-	-- self._camera = Camera:new( mapWidth, mapHeight );
+	self._camera = Camera:new( self._map );
 end
 
 MapScene.update = function( self, dt )
 	MapScene.super.update( self, dt );
+
+	-- Process inputs
+	handleInput( self );
 
 	-- Update entities
 	for _, entity in ipairs( self._updatableEntities ) do
@@ -80,16 +93,14 @@ MapScene.update = function( self, dt )
 	end
 	self._despawnedEntities = {};
 
-	-- self._camera:update( dt );
+	self._camera:update( dt );
 end
 
 MapScene.draw = function( self )
 	MapScene.super.draw( self );
-
 	love.graphics.push();
-
+	self._camera:applyTransforms();
 	self._map:draw();
-
 	love.graphics.pop();
 end
 

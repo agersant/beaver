@@ -15,16 +15,8 @@ Input.init = function( self )
 	end
 
 	local player1Device = self:getDevice( 1 );
-	player1Device:addBinding( "moveLeft", "left" );
-	player1Device:addBinding( "moveRight", "right" );
-	player1Device:addBinding( "moveUp", "up" );
-	player1Device:addBinding( "moveDown", "down" );
-	player1Device:addBinding( "interact", "q" );
-	player1Device:addBinding( "advanceDialog", "q" );
-	player1Device:addBinding( "useSkill1", "q" );
-	player1Device:addBinding( "useSkill2", "w" );
-	player1Device:addBinding( "useSkill3", "e" );
-	player1Device:addBinding( "useSkill4", "r" );
+	player1Device:addBinding( "zoomIn", "wheelUp" );
+	player1Device:addBinding( "zoomOut", "wheelDown" );
 end
 
 Input.getDevice = function( self, index )
@@ -42,6 +34,22 @@ end
 Input.keyReleased = function( self, key, scanCode )
 	for i, device in ipairs( self._devices ) do
 		device:keyReleased( key, scanCode );
+	end
+end
+
+Input.wheelMoved = function( self, x, y )
+	if y == 0 then
+		return;
+	end
+	local key;
+	if y > 0 then
+		key = "wheelUp";
+	elseif y < 0 then
+		key = "wheelDown";
+	end
+	for i, device in ipairs( self._devices ) do
+		device:keyPressed( key);
+		device:keyReleased( key);
 	end
 end
 

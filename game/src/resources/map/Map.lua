@@ -178,16 +178,18 @@ Map.getTileset = function( self )
 end
 
 Map.draw = function( self )
-	-- TMP
-	love.graphics.clear( 0, 200, 160 );
-	love.graphics.translate( self._pixelX, self._pixelY );
-
+	-- Draw tiles
 	love.graphics.draw( self._batch );
 
+	-- Draw outlines
 	love.graphics.translate( -self._pixelX, -self._pixelY );
 	love.graphics.setColor( 0, 40, 100 );
 	love.graphics.setShader( self._outlineShader );
 	love.graphics.draw( self._zBuffer );
+end
+
+Map.getPixelDimensions = function( self )
+	return self._pixelWidth, self._pixelHeight, self._pixelX, self._pixelY;
 end
 
 

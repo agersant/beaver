@@ -34,10 +34,7 @@ end
 
 love.draw = function()
 	love.graphics.reset();
-
-	GFXConfig:applyTransforms();
 	Scene:getCurrent():draw();
-
 	love.graphics.reset();
 	FPSCounter:draw();
 	CLI:draw();
@@ -51,6 +48,10 @@ end
 
 love.keyreleased = function( key, scanCode )
 	Input:keyReleased( key, scanCode );
+end
+
+love.wheelmoved = function( x, y )
+	Input:wheelMoved( x, y );
 end
 
 love.textinput = function( text )

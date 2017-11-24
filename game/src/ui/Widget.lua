@@ -212,7 +212,7 @@ Widget.updatePosition = function( self, dt )
 	if self._parent then
 		parentWidth, parentHeight = self._parent:getSize();
 	else
-		parentWidth, parentHeight = GFXConfig:getNativeSize();
+		parentWidth, parentHeight = GFXConfig:getWindowSize();
 	end
 	self._localLeft = parentWidth * self._leftAnchor + self._leftOffset;
 	self._localTop = parentHeight * self._topAnchor + self._topOffset;
