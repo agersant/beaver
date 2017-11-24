@@ -75,11 +75,6 @@ Entity.getController = function( self )
 	return self._controller;
 end
 
-Entity.getAssignedPlayer = function( self )
-	if self._controller.getAssignedPlayer then
-		return self._controller:getAssignedPlayer();
-	end
-end
 
 
 -- CORE
