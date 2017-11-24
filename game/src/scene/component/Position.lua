@@ -11,6 +11,10 @@ Position.init = function( self )
 	self._ty = 0;
 end
 
+Position.getDepth = function( self )
+	return math.floor( self._tx ) + math.floor( self._ty );
+end
+
 Position.getInTiles = function( self )
 	return self._tx, self._ty;
 end

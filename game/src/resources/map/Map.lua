@@ -194,7 +194,6 @@ Map.init = function( self, mapData, tileset )
 			return color;
         }
 	]] );
-	self._outlineShader:send( "vDelta", 1 / self._zBuffer:getHeight() );
 end
 
 Map.getTileset = function( self )
@@ -240,8 +239,13 @@ Map.draw = function( self )
 	love.graphics.translate( -self._pixelX, -self._pixelY );
 	love.graphics.setColor( 0, 40, 100 );
 	love.graphics.setShader( self._outlineShader );
+	self._outlineShader:send( "vDelta", 1 / self._zBuffer:getHeight() );
 	love.graphics.draw( self._zBuffer );
 	love.graphics.pop();
+end
+
+Map.getZBuffer = function( self )
+	return self._zBuffer;
 end
 
 Map.getPixelDimensions = function( self )

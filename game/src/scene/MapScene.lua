@@ -1,4 +1,5 @@
 require( "src/utils/OOP" );
+local GFXConfig = require( "src/graphics/GFXConfig" );
 local Log = require( "src/dev/Log" );
 local Input = require( "src/input/Input" );
 local Assets = require( "src/resources/Assets" );
@@ -54,9 +55,25 @@ MapScene.init = function( self, mapName )
 
 	self._camera = Camera:new( self._map );
 
+	self._zBuffer = love.graphics.newCanvas( GFXConfig:getWindowSize() );
+	self._depthSortShader = love.graphics.newShader( [[
+		extern Image zBuffer;
+		extern vec2 screenSize;
+		extern int depthThreshold;
+		vec4 effect( vec4 color, Image texture, vec2 textureCoords, vec2 screenCoords )
+        {
+			vec4 zBufferRead = Texel( zBuffer, screenCoords / screenSize );
+			if ( int( zBufferRead.x * 255 ) + int( zBufferRead.y * 255 ) > depthThreshold ) {
+				return vec4( 0, 0, 0, 0 );
+			}
+			vec4 local = Texel( texture, textureCoords );
+			return local * color;
+        }
+	]] );
+
 	-- TMP
 	self._beaver = Beaver:new( self );
-	self._beaver:getPosition():setInTiles( 1, 0 );
+	self._beaver:getPosition():setInTiles( 5, 9 );
 end
 
 MapScene.update = function( self, dt )
@@ -98,15 +115,36 @@ MapScene.update = function( self, dt )
 end
 
 MapScene.draw = function( self )
+
 	MapScene.super.draw( self );
 	love.graphics.push();
 	self._camera:applyTransforms();
 
 	self._map:draw();
-
-	love.graphics.setColor( 255, 255, 255 );
 	love.graphics.setShader();
+	love.graphics.setColor( 255, 255, 255 );
+
+	local zBufferWidth, zBufferHeight = self._zBuffer:getDimensions();
+	local windowWidth, windowHeight = GFXConfig:getWindowSize();
+	if zBufferWidth ~= windowWidth or zBufferHeight ~= windowHeight then
+		Log:info( "Re-allocating MapScene Z Buffer" );
+		self._zBuffer = love.graphics.newCanvas( windowWidth, windowHeight );
+	end
+	love.graphics.setCanvas( self._zBuffer );
+	love.graphics.clear();
+	love.graphics.setBlendMode( "replace", "premultiplied" );
+	local _, _, ox, oy = self._map:getPixelDimensions();
+	love.graphics.draw( self._map:getZBuffer(), -ox, -oy );
+	love.graphics.setCanvas();
+
+	local w, h = GFXConfig:getWindowSize();
+	love.graphics.setShader( self._depthSortShader );
+	love.graphics.setBlendMode( "alpha" );
+	self._depthSortShader:send( "zBuffer", self._zBuffer );
+	self._depthSortShader:send( "screenSize", { w, h } );
 	for _, entity in ipairs( self._drawableEntities ) do
+		local depth = entity:getPosition():getDepth();
+		self._depthSortShader:send( "depthThreshold", depth );
 		entity:draw();
 	end
 
