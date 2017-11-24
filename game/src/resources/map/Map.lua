@@ -34,6 +34,29 @@ local getPixelDimensions = function( self, mapData )
 	return w, h + yPadding, w / 2 - self._tileWidth / 2, yPadding;
 end
 
+local initAltitudes = function( self, mapData )
+	self._altitudes = {};
+	local layers = mapData.content.layers;
+	local tilesetWidth = self._tileset:getWidthInTiles();
+	local firstGID = self._tileset:getFirstGID();
+	for z, layerData in ipairs( layers ) do
+		if layerData.type == "tilelayer" then
+			if not self._layerHeight or self._layerHeight == 0 then
+				self._layerHeight = math.abs( layerData.offsety );
+			end
+			for tileNum, tileID in ipairs( layerData.data ) do
+				local x, y = MathUtils.indexToXY( tileNum - 1, self._width );
+				self._altitudes[x] = self._altitudes[x] or {};
+				if tileID >= firstGID then
+					self._altitudes[x][y] = z;
+				elseif not self._altitudes[x][y] then
+					self._altitudes[x][y] = 0;
+				end
+			end
+		end
+	end
+end
+
 local initSpriteBatch = function( self, mapData )
 
 	local layers = mapData.content.layers;
@@ -134,6 +157,7 @@ Map.init = function( self, mapData, tileset )
 	self._tileWidth = mapData.content.tilewidth;
 	self._tileHeight = mapData.content.tileheight;
 	self._pixelWidth, self._pixelHeight, self._pixelX, self._pixelY = getPixelDimensions( self, mapData );
+	initAltitudes( self, mapData );
 	initSpriteBatch( self, mapData );
 	initZBuffer( self, mapData );
 
@@ -177,15 +201,47 @@ Map.getTileset = function( self )
 	return self._tileset;
 end
 
+Map.tilesToPixels = function( self, x, y )
+	local tileHeight = self._tileset:getTileHeight();
+
+	local tx1 = math.floor( x );
+	local tx2 = math.ceil( x );
+	local ty1 = math.floor( y );
+	local ty2 = math.ceil( y );
+	local tz1 = self._altitudes[tx1][ty1];
+	local tz2 = self._altitudes[tx2][ty2];
+
+	local x1 = ( tx1 - ty1 ) * self._tileWidth / 2;
+	local y1 = ( tx1 + ty1 ) * self._tileHeight / 2;
+	local x2 = ( tx2 - ty2 ) * self._tileWidth / 2;
+	local y2 = ( tx2 + ty2 ) * self._tileHeight / 2;
+	local z1 = tz1 * self._layerHeight;
+	local z2 = tz2 * self._layerHeight;
+
+	local t = 0;
+	if tx2 ~= tx1 or ty2 ~= ty1 then
+		t = ( math.abs( x - tx1 ) + math.abs( y - ty1 ) ) / ( math.abs( tx2 - tx1 ) + math.abs( ty2 - ty1 ) );
+	end
+	local x = MathUtils.lerp( x1, x2, t );
+	local y = MathUtils.lerp( y1, y2, t );
+	local z = MathUtils.lerp( z1, z2, t );
+
+	x = x + self._tileWidth / 2;
+	y = y + tileHeight - self._tileHeight / 2 - z;
+	return x, y;
+end
+
 Map.draw = function( self )
 	-- Draw tiles
 	love.graphics.draw( self._batch );
 
 	-- Draw outlines
+	love.graphics.push();
 	love.graphics.translate( -self._pixelX, -self._pixelY );
 	love.graphics.setColor( 0, 40, 100 );
 	love.graphics.setShader( self._outlineShader );
 	love.graphics.draw( self._zBuffer );
+	love.graphics.pop();
 end
 
 Map.getPixelDimensions = function( self )

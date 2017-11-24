@@ -16,6 +16,10 @@ MathUtils.roundTo = function( n, precision )
 	return MathUtils.round( n / precision ) * precision;
 end
 
+MathUtils.lerp = function( a, b, t )
+	return a + ( b - a ) * t;
+end
+
 MathUtils.clamp = function( low, value, high )
 	assert( low <= high );
 	return math.min( high, math.max( low, value ) );

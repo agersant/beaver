@@ -2,12 +2,12 @@ require( "src/utils/OOP" );
 local Log = require( "src/dev/Log" );
 local Input = require( "src/input/Input" );
 local Assets = require( "src/resources/Assets" );
-local Colors = require( "src/resources/Colors" );
 local Camera = require( "src/scene/Camera" );
 local Scene = require( "src/scene/Scene" );
-local Entity = require( "src/scene/entity/Entity" );
-local UIScene = require( "src/ui/UIScene" );
 local TableUtils = require( "src/utils/TableUtils" );
+
+-- TMP
+local Beaver = require( "src/content/Beaver" );
 
 local MapScene = Class( "MapScene", Scene );
 
@@ -53,6 +53,10 @@ MapScene.init = function( self, mapName )
 	self._map = Assets:getMap( mapName );
 
 	self._camera = Camera:new( self._map );
+
+	-- TMP
+	self._beaver = Beaver:new( self );
+	self._beaver:getPosition():setInTiles( 1, 0 );
 end
 
 MapScene.update = function( self, dt )
@@ -71,9 +75,6 @@ MapScene.update = function( self, dt )
 		table.insert( self._entities, entity );
 		if entity:isDrawable() then
 			table.insert( self._drawableEntities, entity );
-		end
-		if entity:isCombatable() then
-			table.insert( self._combatableEntities, entity );
 		end
 	end
 	for entity, _ in pairs( self._spawnedEntities ) do
@@ -100,7 +101,15 @@ MapScene.draw = function( self )
 	MapScene.super.draw( self );
 	love.graphics.push();
 	self._camera:applyTransforms();
+
 	self._map:draw();
+
+	love.graphics.setColor( 255, 255, 255 );
+	love.graphics.setShader();
+	for _, entity in ipairs( self._drawableEntities ) do
+		entity:draw();
+	end
+
 	love.graphics.pop();
 end
 

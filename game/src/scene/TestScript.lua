@@ -1,6 +1,6 @@
 assert( gConf.unitTesting );
 local Script = require( "src/scene/Script" );
-local Entity = require( "src/scene/entity/Entity" );
+local Entity = require( "src/scene/Entity" );
 
 local tests = {};
 

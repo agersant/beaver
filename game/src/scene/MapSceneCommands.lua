@@ -2,7 +2,6 @@ local CLI = require( "src/dev/cli/CLI" );
 local PlayerSave = require( "src/persistence/PlayerSave" );
 local MapScene = require( "src/scene/MapScene" );
 local Scene = require( "src/scene/Scene" );
-local Entity = require( "src/scene/entity/Entity" );
 
 
 

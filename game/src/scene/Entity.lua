@@ -15,6 +15,19 @@ Entity.init = function( self, scene )
 end
 
 
+-- POSITION
+
+Entity.addPosition = function( self, position )
+	self._position = position;
+	assert( self._position );
+end
+
+Entity.getPosition = function( self )
+	assert( self._position );
+	return self._position;
+end
+
+
 
 -- SPRITE COMPONENT
 
@@ -26,11 +39,6 @@ end
 Entity.setAnimation = function( self, animationName, forceRestart )
 	assert( self._sprite );
 	self._sprite:setAnimation( animationName, forceRestart );
-end
-
-Entity.setUseSpriteHitboxData = function( self, enabled )
-	assert( self._body );
-	self._useSpriteHitboxData = enabled;
 end
 
 
@@ -84,7 +92,7 @@ Entity.isUpdatable = function( self )
 end
 
 Entity.isDrawable = function( self )
-	return self._sprite or self._body or ( self.draw ~= Entity.draw );
+	return self._sprite or ( self.draw ~= Entity.draw );
 end
 
 Entity.update = function( self, dt )
@@ -101,8 +109,11 @@ Entity.update = function( self, dt )
 end
 
 Entity.draw = function( self )
-	if self._sprite and self._body then
-		self._sprite:draw( self._body:getX(), self._body:getY() );
+	if self._sprite and self._position then
+		local tx, ty = self._position:getInTiles();
+		local map = self:getScene():getMap();
+		local x, y = map:tilesToPixels( tx, ty );
+		self._sprite:draw( x, y );
 	end
 end
 
