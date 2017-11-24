@@ -40,9 +40,9 @@ MapScene.init = function( self, mapName )
 	self._mapName = mapName;
 	self._map = Assets:getMap( mapName );
 
-	local mapWidth = self._map:getWidthInPixels();
-	local mapHeight = self._map:getHeightInPixels();
-	self._camera = Camera:new( mapWidth, mapHeight );
+	-- local mapWidth = self._map:getWidthInPixels();
+	-- local mapHeight = self._map:getHeightInPixels();
+	-- self._camera = Camera:new( mapWidth, mapHeight );
 end
 
 MapScene.update = function( self, dt )
@@ -80,13 +80,15 @@ MapScene.update = function( self, dt )
 	end
 	self._despawnedEntities = {};
 
-	self._camera:update( dt );
+	-- self._camera:update( dt );
 end
 
 MapScene.draw = function( self )
 	MapScene.super.draw( self );
 
 	love.graphics.push();
+
+	self._map:draw();
 
 	love.graphics.pop();
 end
