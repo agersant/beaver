@@ -16,6 +16,21 @@ local MapScene = Class( "MapScene", Scene );
 
 -- IMPLEMENTATION
 
+local depthSortShader = [[
+	extern Image zBuffer;
+	extern vec2 screenSize;
+	extern int depthThreshold;
+	vec4 effect( vec4 color, Image texture, vec2 textureCoords, vec2 screenCoords )
+	{
+		vec4 zBufferRead = Texel( zBuffer, screenCoords / screenSize );
+		if ( int( zBufferRead.x * 255 ) + int( zBufferRead.y * 255 ) > depthThreshold ) {
+			return vec4( 0, 0, 0, 0 );
+		}
+		vec4 local = Texel( texture, textureCoords );
+		return local * color;
+	}
+]];
+
 local removeDespawnedEntitiesFrom = function( self, list )
 	for i = #list, 1, -1 do
 		local entity = list[i];
@@ -56,20 +71,7 @@ MapScene.init = function( self, mapName )
 	self._camera = Camera:new( self._map );
 
 	self._zBuffer = love.graphics.newCanvas( GFXConfig:getWindowSize() );
-	self._depthSortShader = love.graphics.newShader( [[
-		extern Image zBuffer;
-		extern vec2 screenSize;
-		extern int depthThreshold;
-		vec4 effect( vec4 color, Image texture, vec2 textureCoords, vec2 screenCoords )
-        {
-			vec4 zBufferRead = Texel( zBuffer, screenCoords / screenSize );
-			if ( int( zBufferRead.x * 255 ) + int( zBufferRead.y * 255 ) > depthThreshold ) {
-				return vec4( 0, 0, 0, 0 );
-			}
-			vec4 local = Texel( texture, textureCoords );
-			return local * color;
-        }
-	]] );
+	self._depthSortShader = love.graphics.newShader( depthSortShader );
 
 	-- TMP
 	self._beaver = Beaver:new( self );
@@ -120,23 +122,28 @@ MapScene.draw = function( self )
 	love.graphics.push();
 	self._camera:applyTransforms();
 
+	-- Draw the map
 	self._map:draw();
-	love.graphics.setShader();
-	love.graphics.setColor( 255, 255, 255 );
 
+	-- Make sure we have a zBuffer canvas to draw too
 	local zBufferWidth, zBufferHeight = self._zBuffer:getDimensions();
 	local windowWidth, windowHeight = GFXConfig:getWindowSize();
 	if zBufferWidth ~= windowWidth or zBufferHeight ~= windowHeight then
 		Log:info( "Re-allocating MapScene Z Buffer" );
 		self._zBuffer = love.graphics.newCanvas( windowWidth, windowHeight );
 	end
+
+	-- Draw zBuffer
 	love.graphics.setCanvas( self._zBuffer );
 	love.graphics.clear();
+	love.graphics.setShader();
+	love.graphics.setColor( 255, 255, 255 );
 	love.graphics.setBlendMode( "replace", "premultiplied" );
 	local _, _, ox, oy = self._map:getPixelDimensions();
 	love.graphics.draw( self._map:getZBuffer(), -ox, -oy );
 	love.graphics.setCanvas();
 
+	-- Draw entities
 	local w, h = GFXConfig:getWindowSize();
 	love.graphics.setShader( self._depthSortShader );
 	love.graphics.setBlendMode( "alpha" );

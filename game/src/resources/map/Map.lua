@@ -10,6 +10,52 @@ local Map = Class( "Map" );
 
 -- IMPLEMENTATION
 
+local silhouetteShader = [[
+	vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords)
+	{
+		vec4 texturecolor = Texel(texture, texture_coords);
+		if (texturecolor.a == 0)
+		{
+			discard;
+		}
+		return color;
+	}
+]];
+
+local outlineShader = [[
+	#extension GL_EXT_gpu_shader4 : enable
+
+	const int slopeSW = 1 << 0;
+	const int slopeSE = 1 << 1;
+	const int slopeNW = 1 << 2;
+	const int slopeNE = 1 << 3;
+
+	extern float vDelta;
+	vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords)
+	{
+		vec4 local = Texel(texture, texture_coords);
+		vec4 down = Texel(texture, texture_coords + vec2( 0, vDelta ));
+		if ( local.z >= down.z )
+		{
+			discard;
+		}
+
+		bool slopeNW = ( int( down.a * 255 ) & slopeNW ) != 0;
+		if ( slopeNW && ( 1 + int( local.x * 255 ) ) == int( down.x * 255 ) )
+		{
+			discard;
+		}
+
+		bool slopeNE = ( int( down.a * 255 ) & slopeNE ) != 0;
+		if ( slopeNE && ( 1 + int( local.y * 255 ) ) == int( down.y * 255 ) )
+		{
+			discard;
+		}
+
+		return color;
+	}
+]];
+
 -- Returns the following values, in pixels:
 -- Width of the map bounding box
 -- Height of the map bounding box
@@ -101,17 +147,7 @@ local initZBuffer = function( self, mapData )
 
 	love.graphics.reset();
 
-	local flatShader = love.graphics.newShader( [[
-		vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords)
-        {
-			vec4 texturecolor = Texel(texture, texture_coords);
-			if (texturecolor.a == 0)
-			{
-				discard;
-			}
-            return color;
-        }
-		]] );
+	local flatShader = love.graphics.newShader( silhouetteShader );
 	love.graphics.setShader( flatShader );
 	love.graphics.setBlendMode( "replace", "premultiplied" );
 
@@ -150,50 +186,16 @@ end
 -- PUBLIC API
 
 Map.init = function( self, mapData, tileset )
-
 	self._tileset = tileset;
 	self._width = mapData.content.width;
 	self._height = mapData.content.height;
 	self._tileWidth = mapData.content.tilewidth;
 	self._tileHeight = mapData.content.tileheight;
 	self._pixelWidth, self._pixelHeight, self._pixelX, self._pixelY = getPixelDimensions( self, mapData );
+	self._outlineShader = love.graphics.newShader( outlineShader );
 	initAltitudes( self, mapData );
 	initSpriteBatch( self, mapData );
 	initZBuffer( self, mapData );
-
-	self._outlineShader = love.graphics.newShader( [[
-		#extension GL_EXT_gpu_shader4 : enable
-
-		const int slopeSW = 1 << 0;
-		const int slopeSE = 1 << 1;
-		const int slopeNW = 1 << 2;
-		const int slopeNE = 1 << 3;
-
-		extern float vDelta;
-		vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords)
-        {
-			vec4 local = Texel(texture, texture_coords);
-			vec4 down = Texel(texture, texture_coords + vec2( 0, vDelta ));
-			if ( local.z >= down.z )
-			{
-				discard;
-			}
-
-			bool slopeNW = ( int( down.a * 255 ) & slopeNW ) != 0;
-			if ( slopeNW && ( 1 + int( local.x * 255 ) ) == int( down.x * 255 ) )
-			{
-				discard;
-			}
-
-			bool slopeNE = ( int( down.a * 255 ) & slopeNE ) != 0;
-			if ( slopeNE && ( 1 + int( local.y * 255 ) ) == int( down.y * 255 ) )
-			{
-				discard;
-			}
-
-			return color;
-        }
-	]] );
 end
 
 Map.getTileset = function( self )
