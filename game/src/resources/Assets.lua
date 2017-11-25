@@ -306,6 +306,10 @@ Assets.getMap = function( self, path )
 	return getAsset( self, "map", path );
 end
 
+Assets.getImage = function( self, path )
+	return getAsset( self, "image", path );
+end
+
 Assets.getSpritesheet = function( self, path )
 	return getAsset( self, "spritesheet", path );
 end
