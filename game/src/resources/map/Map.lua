@@ -82,11 +82,13 @@ end
 
 local initAltitudes = function( self, mapData )
 	self._altitudes = {};
+	self._numLayers = 0;
 	local layers = mapData.content.layers;
 	local tilesetWidth = self._tileset:getWidthInTiles();
 	local firstGID = self._tileset:getFirstGID();
 	for z, layerData in ipairs( layers ) do
 		if layerData.type == "tilelayer" then
+			self._numLayers = self._numLayers + 1;
 			if not self._layerHeight or self._layerHeight == 0 then
 				self._layerHeight = math.abs( layerData.offsety );
 			end
@@ -189,6 +191,7 @@ Map.init = function( self, mapData, tileset )
 	self._tileset = tileset;
 	self._width = mapData.content.width;
 	self._height = mapData.content.height;
+	self._numLayers = 0;
 	self._tileWidth = mapData.content.tilewidth;
 	self._tileHeight = mapData.content.tileheight;
 	self._pixelWidth, self._pixelHeight, self._pixelX, self._pixelY = getPixelDimensions( self, mapData );
@@ -250,8 +253,24 @@ Map.getZBuffer = function( self )
 	return self._zBuffer;
 end
 
+Map.getDimensions = function( self )
+	return self._width, self._height, self._numLayers;
+end
+
+Map.getTileDimensions = function( self )
+	return self._tileWidth, self._tileHeight, self._layerHeight;
+end
+
 Map.getPixelDimensions = function( self )
 	return self._pixelWidth, self._pixelHeight, self._pixelX, self._pixelY;
+end
+
+Map.getAltitude = function( self, x, y )
+	assert( x >= 0 );
+	assert( x < self._width );
+	assert( y >= 0 );
+	assert( y < self._height );
+	return self._altitudes[x][y];
 end
 
 

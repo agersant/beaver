@@ -5,6 +5,7 @@ local Input = require( "src/input/Input" );
 local Assets = require( "src/resources/Assets" );
 local Camera = require( "src/scene/Camera" );
 local Scene = require( "src/scene/Scene" );
+local WaterSim = require( "src/scene/WaterSim" );
 local TableUtils = require( "src/utils/TableUtils" );
 
 -- TMP
@@ -67,6 +68,11 @@ MapScene.init = function( self, mapName )
 
 	self._mapName = mapName;
 	self._map = Assets:getMap( mapName );
+	self._waterSim = WaterSim:new( self._map );
+
+	self._waterSim:setWaterHeight( 4, 4, 10 );
+	-- self._waterSim:setWaterSource( 0, 4, .01 );
+	-- self._waterSim:setWaterSource( 0, 4, .01 );
 
 	self._camera = Camera:new( self._map );
 
@@ -80,6 +86,9 @@ end
 
 MapScene.update = function( self, dt )
 	MapScene.super.update( self, dt );
+
+	-- Update water sim
+	self._waterSim:update( dt );
 
 	-- Process inputs
 	handleInput( self );
@@ -143,12 +152,18 @@ MapScene.draw = function( self )
 	love.graphics.draw( self._map:getZBuffer(), -ox, -oy );
 	love.graphics.setCanvas();
 
-	-- Draw entities
+	-- Setup depth sort
 	local w, h = GFXConfig:getWindowSize();
 	love.graphics.setShader( self._depthSortShader );
-	love.graphics.setBlendMode( "alpha" );
 	self._depthSortShader:send( "zBuffer", self._zBuffer );
 	self._depthSortShader:send( "screenSize", { w, h } );
+	love.graphics.setBlendMode( "alpha", "alphamultiply" );
+
+	-- Draw water
+	self._waterSim:draw( self._depthSortShader );
+
+	-- Draw entities
+	love.graphics.setColor( 255, 255, 255 );
 	for _, entity in ipairs( self._drawableEntities ) do
 		local depth = entity:getPosition():getDepth();
 		self._depthSortShader:send( "depthThreshold", depth );
@@ -172,6 +187,10 @@ end
 
 MapScene.getCamera = function( self )
 	return self._camera;
+end
+
+MapScene.getWaterSim = function( self )
+	return self._waterSim;
 end
 
 
