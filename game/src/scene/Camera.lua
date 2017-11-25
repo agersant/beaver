@@ -15,7 +15,7 @@ Camera.init = function( self, map )
 	self._panThresholdX = 0.075; -- Proportional to screen width
 	self._panThresholdY = 0.075; -- Proportional to screen height
 	self._panSpeed = 800; -- px per seconds
-	self._zoom = 1;
+	self._zoom = 2;
 end
 
 Camera.applyTransforms = function( self )
