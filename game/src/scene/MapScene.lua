@@ -70,16 +70,15 @@ MapScene.init = function( self, mapName )
 	self._map = Assets:getMap( mapName );
 	self._waterSim = WaterSim:new( self._map );
 
-	self._waterSim:setWaterHeight( 4, 4, 10 );
-	-- self._waterSim:setWaterSource( 0, 4, .01 );
-	-- self._waterSim:setWaterSource( 0, 4, .01 );
-
 	self._camera = Camera:new( self._map );
 
 	self._zBuffer = love.graphics.newCanvas( GFXConfig:getWindowSize() );
 	self._depthSortShader = love.graphics.newShader( depthSortShader );
 
 	-- TMP
+	self._waterSim:setWaterSource( 0, 4, .01 );
+	self._waterSim:setWaterSource( 0, 5, .01 );
+	self._waterSim:setWaterSource( 0, 6, .01 );
 	self._beaver = Beaver:new( self );
 	self._beaver:getPosition():setInTiles( 5, 9 );
 end
