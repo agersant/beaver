@@ -143,14 +143,21 @@ WaterSim.step = function( self )
 								table.insert( component, { x = nx, y = ny } );
 							elseif isOnMap then
 								-- print( "drop to", nx, ny, " from ", p.x, p.y, deltaZ );
-								local transferAmount = math.min( sampleLocal.h, deltaZ );
+								if not droplets[nx] then
+									droplets[nx] = {};
+								end
+								if not droplets[nx][ny] then
+									droplets[nx][ny] = 0;
+								end
+								local transferAmount = math.min( sampleLocal.h, deltaZ - droplets[nx][ny] );
+								assert( transferAmount >= 0 );
 								dropEmitters[componentIndex] = dropEmitters[componentIndex] or 0;
 								dropEmitters[componentIndex] = dropEmitters[componentIndex] + transferAmount;
 								if labels[nx][ny] then
 									dropReceivers[labels[nx][ny]] = dropReceivers[labels[nx][ny]] or 0;
 									dropReceivers[labels[nx][ny]] = dropReceivers[labels[nx][ny]] + transferAmount;
 								end
-								table.insert( droplets, { x = nx, y = ny, amount = transferAmount } );
+								droplets[nx][ny] = droplets[nx][ny] + transferAmount;
 							end
 						end
 					end
@@ -160,8 +167,10 @@ WaterSim.step = function( self )
 
 	end
 
-	for _, p in ipairs( droplets ) do
-		newField[p.x][p.y].h = newField[p.x][p.y].h + p.amount;
+	for x, d in pairs( droplets ) do
+		for y, amount in pairs( d ) do
+			newField[x][y].h = newField[x][y].h + amount;
+		end
 	end
 
 	-- Level components
