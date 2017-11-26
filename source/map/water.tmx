@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" tiledversion="1.0.3" orientation="isometric" renderorder="left-down" width="20" height="20" tilewidth="32" tileheight="16" nextobjectid="1">
+<map version="1.0" tiledversion="1.0.3" orientation="isometric" renderorder="left-down" width="20" height="20" tilewidth="32" tileheight="16" nextobjectid="10">
  <tileset firstgid="1" source="../tileset/canada.tsx"/>
  <layer name="Tile Layer 1" width="20" height="20">
   <data encoding="csv">
@@ -145,4 +145,12 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
+ <objectgroup name="source" offsetx="0" offsety="-8">
+  <object id="1" type="source" x="0" y="64" width="16" height="16"/>
+  <object id="5" type="source" x="0" y="80" width="16" height="16"/>
+  <object id="6" type="source" x="0" y="96" width="16" height="16"/>
+  <object id="7" type="source" x="304" y="64" width="16" height="16"/>
+  <object id="8" type="source" x="304" y="80" width="16" height="16"/>
+  <object id="9" type="source" x="304" y="96" width="16" height="16"/>
+ </objectgroup>
 </map>

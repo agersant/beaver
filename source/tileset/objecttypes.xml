@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objecttypes>
+ <objecttype name="source" color="#00aaff">
+  <property name="flow" type="int" default="1"/>
+ </objecttype>
+</objecttypes>

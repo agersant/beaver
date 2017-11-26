@@ -50,17 +50,10 @@ WaterSim.init = function( self, map )
 			};
 		end
 	end
-end
 
-
-WaterSim.setWaterHeight = function( self, x, y, height )
-	assert( height >= 0 );
-	self._field[x][y].h = height;
-end
-
-WaterSim.setWaterSource = function( self, x, y, amount )
-	assert( amount >= 0 );
-	self._field[x][y].source = amount;
+	for _, source in ipairs( self._map:getWaterSources() ) do
+		self._field[source.x][source.y].source = source.flow;
+	end
 end
 
 WaterSim.step = function( self )

@@ -80,6 +80,28 @@ local getPixelDimensions = function( self, mapData )
 	return w, h + yPadding, w / 2 - self._tileWidth / 2, yPadding;
 end
 
+local initWater = function( self, mapData )
+	self._waterSources = {};
+	for _, layerData in ipairs( mapData.content.layers ) do
+		if layerData.type == "objectgroup" then
+			for _, object in ipairs( layerData.objects ) do
+				if object.type == "source" then
+					-- local x = math.floor( object.x / self._tileWidth ) + math.floor( object.y / self._tileHeight );
+					-- local y = math.floor( object.y / self._tileHeight ) - math.floor( object.x / self._tileWidth );
+					local x = math.floor( object.x / ( self._tileWidth / 2 ) );
+					local y = math.floor( object.y / self._tileHeight );
+					print(x,y);
+					local flow = 1;
+					if object.properties and object.properties.flow then
+						flow = object.properties.flow;
+					end
+					table.insert( self._waterSources, { x = x, y = y, flow = flow } );
+				end
+			end
+		end
+	end
+end
+
 local initAltitudes = function( self, mapData )
 	self._altitudes = {};
 	self._numLayers = 0;
@@ -196,6 +218,7 @@ Map.init = function( self, mapData, tileset )
 	self._tileHeight = mapData.content.tileheight;
 	self._pixelWidth, self._pixelHeight, self._pixelX, self._pixelY = getPixelDimensions( self, mapData );
 	self._outlineShader = love.graphics.newShader( outlineShader );
+	initWater( self, mapData );
 	initAltitudes( self, mapData );
 	initSpriteBatch( self, mapData );
 	initZBuffer( self, mapData );
@@ -271,6 +294,10 @@ Map.getAltitude = function( self, x, y )
 	assert( y >= 0 );
 	assert( y < self._height );
 	return self._altitudes[x][y];
+end
+
+Map.getWaterSources = function( self, x, y )
+	return self._waterSources;
 end
 
 

@@ -8,7 +8,7 @@ return {
   height = 20,
   tilewidth = 32,
   tileheight = 16,
-  nextobjectid = 1,
+  nextobjectid = 3,
   properties = {},
   tilesets = {
     {
@@ -249,7 +249,7 @@ return {
     },
     {
       type = "tilelayer",
-      name = "Copy of Tile Layer 4",
+      name = "Tile Layer 5",
       x = 0,
       y = 0,
       width = 20,
@@ -285,7 +285,7 @@ return {
     },
     {
       type = "tilelayer",
-      name = "Copy of Copy of Tile Layer 4",
+      name = "Tile Layer 6",
       x = 0,
       y = 0,
       width = 20,
@@ -321,7 +321,7 @@ return {
     },
     {
       type = "tilelayer",
-      name = "Copy of Copy of Copy of Tile Layer 4",
+      name = "Tile Layer 7",
       x = 0,
       y = 0,
       width = 20,
@@ -357,7 +357,7 @@ return {
     },
     {
       type = "tilelayer",
-      name = "Copy of Copy of Copy of Copy of Tile Layer 4",
+      name = "Tile Layer 8",
       x = 0,
       y = 0,
       width = 20,
@@ -389,6 +389,44 @@ return {
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+      }
+    },
+    {
+      type = "objectgroup",
+      name = "Object Layer 1",
+      visible = true,
+      opacity = 1,
+      offsetx = 0,
+      offsety = -56,
+      draworder = "topdown",
+      properties = {},
+      objects = {
+        {
+          id = 1,
+          name = "",
+          type = "source",
+          shape = "rectangle",
+          x = 96,
+          y = 0,
+          width = 16,
+          height = 16,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 2,
+          name = "",
+          type = "source",
+          shape = "rectangle",
+          x = 112,
+          y = 0,
+          width = 16,
+          height = 16,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        }
       }
     }
   }

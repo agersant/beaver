@@ -8,7 +8,7 @@ return {
   height = 20,
   tilewidth = 32,
   tileheight = 16,
-  nextobjectid = 1,
+  nextobjectid = 4,
   properties = {},
   tilesets = {
     {
@@ -140,6 +140,63 @@ return {
       }
     },
     {
+      type = "objectgroup",
+      name = "Object Layer 1",
+      visible = true,
+      opacity = 1,
+      offsetx = 0,
+      offsety = -8,
+      draworder = "topdown",
+      properties = {},
+      objects = {
+        {
+          id = 1,
+          name = "",
+          type = "source",
+          shape = "rectangle",
+          x = 0,
+          y = 64,
+          width = 16,
+          height = 16,
+          rotation = 0,
+          visible = true,
+          properties = {
+            ["flow"] = 2
+          }
+        },
+        {
+          id = 2,
+          name = "",
+          type = "source",
+          shape = "rectangle",
+          x = 0,
+          y = 80,
+          width = 16,
+          height = 16,
+          rotation = 0,
+          visible = true,
+          properties = {
+            ["flow"] = 2
+          }
+        },
+        {
+          id = 3,
+          name = "",
+          type = "source",
+          shape = "rectangle",
+          x = 0,
+          y = 96,
+          width = 16,
+          height = 16,
+          rotation = 0,
+          visible = true,
+          properties = {
+            ["flow"] = 2
+          }
+        }
+      }
+    },
+    {
       type = "tilelayer",
       name = "Tile Layer 2",
       x = 0,
@@ -177,7 +234,7 @@ return {
     },
     {
       type = "tilelayer",
-      name = "Copy of Tile Layer 2",
+      name = "Tile Layer 3",
       x = 0,
       y = 0,
       width = 20,
@@ -213,7 +270,7 @@ return {
     },
     {
       type = "tilelayer",
-      name = "Copy of Copy of Tile Layer 2",
+      name = "Tile Layer 4",
       x = 0,
       y = 0,
       width = 20,
@@ -249,7 +306,7 @@ return {
     },
     {
       type = "tilelayer",
-      name = "Copy of Copy of Copy of Tile Layer 2",
+      name = "Tile Layer 5",
       x = 0,
       y = 0,
       width = 20,
@@ -285,7 +342,7 @@ return {
     },
     {
       type = "tilelayer",
-      name = "Copy of Copy of Copy of Copy of Tile Layer 2",
+      name = "Tile Layer 6",
       x = 0,
       y = 0,
       width = 20,
