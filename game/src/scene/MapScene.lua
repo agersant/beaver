@@ -90,11 +90,11 @@ MapScene.init = function( self, mapName )
 	-- self._waterSim:setWaterSource( 7, 0, 1 );
 
 	-- Dam
-	self._waterSim:setWaterSource( 0, 4, .5 );
-	self._waterSim:setWaterSource( 0, 5, .5 );
-	self._waterSim:setWaterSource( 0, 6, .5 );
-	self._waterSim:setWaterSource( 0, 7, .5 );
-	self._waterSim:setWaterSource( 0, 8, .5 );
+	self._waterSim:setWaterSource( 0, 4, 1 );
+	self._waterSim:setWaterSource( 0, 5, 1 );
+	self._waterSim:setWaterSource( 0, 6, 1 );
+	self._waterSim:setWaterSource( 0, 7, 1 );
+	self._waterSim:setWaterSource( 0, 8, 1 );
 
 	self._beaver = Beaver:new( self );
 	self._beaver:getPosition():setInTiles( 5, 9 );

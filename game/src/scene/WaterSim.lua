@@ -9,6 +9,9 @@ local WaterSim = Class( "WaterSim" );
 
 -- IMPLEMENTATION
 
+-- TODO Why does water map explode when this is <= 1.7
+local discontinuity = 2;
+
 local sample = function( self, x, y )
 	if x < 0 or x >= self._width or y < 0 or y >= self._height then
 		local cx = MathUtils.clamp( 0, x, self._width - 1 );
@@ -97,7 +100,9 @@ WaterSim.step = function( self )
 							local isNeighbour = ( i ~= 0 or j ~= 0 ) and ( i == 0 or j == 0 );
 							local isOnMap = nx >= 0 and ny >= 0 and nx < self._width and ny < self._height;
 							local sampleDelta = sample( self, nx, ny );
-							if isNeighbour and isOnMap and sampleDelta.h > 0 and not labels[nx][ny] then
+							local hasWater = sampleDelta.h > 0;
+							local isComparableZLevel = discontinuity > math.abs( ( sampleDelta.h + sampleDelta.H ) - ( sampleLocal.h + sampleLocal.H ) );
+							if isNeighbour and isOnMap and hasWater and isComparableZLevel and not labels[nx][ny] then
 								labels[nx][ny] = currentLabel;
 								table.insert( components[currentLabel], { x = nx, y = ny } );
 								table.insert( queue, { x = nx, y = ny } );
@@ -112,49 +117,67 @@ WaterSim.step = function( self )
 		end
 	end
 
-	for _, component in ipairs( components ) do
-		local hSum = 0;
-		local HSum = 0;
-		for _, p in ipairs( component ) do
-			local sampleLocal = sample( self, p.x, p.y );
-			hSum = hSum + sampleLocal.h;
-			HSum = HSum + sampleLocal.H;
-		end
-		local hAverage = hSum / #component;
-		local HAverage = HSum / #component;
-		local zAverage = ( hSum + HSum ) / #component;
+	-- Compute water exchanged between components
+	local droplets = {};
+	local dropEmitters = {};
+	local dropReceivers = {};
+	for componentIndex, component in ipairs( components ) do
 
-		local componentCopy = TableUtils.shallowCopy( component );
-		for _, p in ipairs( componentCopy ) do
+		for _, p in ipairs( TableUtils.shallowCopy( component ) ) do
 			local sampleLocal = sample( self, p.x, p.y );
 			for i = -1, 1 do
 				for j = -1, 1 do
 					local nx, ny = p.x + i, p.y + j;
 					local isNeighbour = ( i ~= 0 or j ~= 0 ) and ( i == 0 or j == 0 );
 					local isOnMap = nx >= 0 and ny >= 0 and nx < self._width and ny < self._height;
-					local hasWater = isOnMap and labels[nx][ny];
-					local isSelfSource = sampleLocal.source > 0;
-					if isNeighbour and ( ( isOnMap and not hasWater ) or ( not isOnMap and not isSelfSource ) ) then
+					local isOtherComponent = isOnMap and labels[nx][ny] ~= componentIndex;
+					local isLeak = not isOnMap and sampleLocal.source == 0;
+					if isNeighbour and ( isOtherComponent or isLeak ) then
 						local sampleDelta = sample( self, nx, ny );
-						if sampleDelta.H <= ( sampleLocal.H + sampleLocal.h ) then
-							table.insert( component, { x = nx, y = ny } );
+						if ( sampleDelta.H + sampleDelta.h ) < ( sampleLocal.H + sampleLocal.h ) then
+							local deltaZ = ( sampleLocal.h + sampleLocal.H ) - ( sampleDelta.h + sampleDelta.H );
+							assert( deltaZ > 0 );
+							local isComparableZLevel = discontinuity > deltaZ;
+							if isComparableZLevel then
+								-- print( "propagate to", nx, ny, " from ", p.x, p.y, deltaZ );
+								table.insert( component, { x = nx, y = ny } );
+							elseif isOnMap then
+								-- print( "drop to", nx, ny, " from ", p.x, p.y, deltaZ );
+								local transferAmount = math.min( sampleLocal.h, deltaZ );
+								dropEmitters[componentIndex] = dropEmitters[componentIndex] or 0;
+								dropEmitters[componentIndex] = dropEmitters[componentIndex] + transferAmount;
+								if labels[nx][ny] then
+									dropReceivers[labels[nx][ny]] = dropReceivers[labels[nx][ny]] or 0;
+									dropReceivers[labels[nx][ny]] = dropReceivers[labels[nx][ny]] + transferAmount;
+								end
+								table.insert( droplets, { x = nx, y = ny, amount = transferAmount } );
+							end
 						end
 					end
 				end
 			end
 		end
 
-		local hSum = 0;
-		local HSum = 0;
+	end
+
+	for _, p in ipairs( droplets ) do
+		newField[p.x][p.y].h = newField[p.x][p.y].h + p.amount;
+	end
+
+	-- Level components
+	for componentIndex, component in ipairs( components ) do
+		local zSum = 0;
 		for _, p in ipairs( component ) do
 			local sampleLocal = sample( self, p.x, p.y );
-			hSum = hSum + sampleLocal.h;
-			HSum = HSum + sampleLocal.H;
+			zSum = zSum + sampleLocal.h + sampleLocal.H;
 		end
-		local hAverage = hSum / #component;
-		local HAverage = HSum / #component;
-		local zAverage = ( hSum + HSum ) / #component;
-
+		if dropEmitters[componentIndex] then
+			zSum = zSum - dropEmitters[componentIndex];
+		end
+		if dropReceivers[componentIndex] then
+			zSum = zSum + dropReceivers[componentIndex];
+		end
+		local zAverage = zSum / #component;
 		for _, p in ipairs( component ) do
 			local isOnMap = p.x >= 0 and p.y >= 0 and p.x < self._width and p.y < self._height;
 			if isOnMap then
