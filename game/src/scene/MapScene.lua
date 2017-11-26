@@ -76,9 +76,26 @@ MapScene.init = function( self, mapName )
 	self._depthSortShader = love.graphics.newShader( depthSortShader );
 
 	-- TMP
-	self._waterSim:setWaterSource( 0, 4, .01 );
-	self._waterSim:setWaterSource( 0, 5, .01 );
-	self._waterSim:setWaterSource( 0, 6, .01 );
+
+	-- River
+	-- self._waterSim:setWaterSource( 0, 4, 1 );
+	-- self._waterSim:setWaterSource( 0, 5, 1 );
+	-- self._waterSim:setWaterSource( 0, 6, 1 );
+	-- self._waterSim:setWaterSource( 19, 4, 1 );
+	-- self._waterSim:setWaterSource( 19, 5, 1 );
+	-- self._waterSim:setWaterSource( 19, 6, 1 );
+
+	-- Cascade
+	-- self._waterSim:setWaterSource( 6, 0, 1 );
+	-- self._waterSim:setWaterSource( 7, 0, 1 );
+
+	-- Dam
+	self._waterSim:setWaterSource( 0, 4, .5 );
+	self._waterSim:setWaterSource( 0, 5, .5 );
+	self._waterSim:setWaterSource( 0, 6, .5 );
+	self._waterSim:setWaterSource( 0, 7, .5 );
+	self._waterSim:setWaterSource( 0, 8, .5 );
+
 	self._beaver = Beaver:new( self );
 	self._beaver:getPosition():setInTiles( 5, 9 );
 end

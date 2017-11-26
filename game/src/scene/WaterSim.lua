@@ -11,9 +11,11 @@ local WaterSim = Class( "WaterSim" );
 
 local sample = function( self, x, y )
 	if x < 0 or x >= self._width or y < 0 or y >= self._height then
+		local cx = MathUtils.clamp( 0, x, self._width - 1 );
+		local cy = MathUtils.clamp( 0, y, self._height - 1 );
 		return {
 			h = 0,
-			H = 0,
+			H = self._map:getAltitude( cx, cy ),
 			source = 0,
 		};
 	end
@@ -61,52 +63,102 @@ end
 WaterSim.step = function( self )
 
 	local newField = {};
+	local labels = {};
 	for x = 0, self._width - 1 do
 		newField[x] = {};
+		labels[x] = {};
 		for y = 0, self._height - 1 do
+			self._field[x][y].h = self._field[x][y].h + self._field[x][y].source;
 			newField[x][y] = TableUtils.shallowCopy( self._field[x][y] );
+			labels[x][y] = nil;
 		end
 	end
 
+	local currentLabel = 1;
+	local components = {};
+
 	for x = 0, self._width - 1 do
 		for y = 0, self._height - 1 do
+
 			local sampleLocal = sample( self, x, y );
-			local transferred = 0;
 
-			assert( newField[x][y].source >= 0 );
-			newField[x][y].h = newField[x][y].h + newField[x][y].source;
+			if sampleLocal.h > 0 and not labels[x][y] then
+				components[currentLabel] = {};
+				local queue = {};
 
-			for i = -1, 1 do
-				for j = -1, 1 do
-					local hasWaterToGive = transferred < sampleLocal.h;
-					local isNeighbour = ( i ~= 0 or j ~= 0 ) and ( i == 0 or j == 0 );
-					if hasWaterToGive and isNeighbour then
-						local sampleDelta = sample( self, x + i, y + j );
-						local totalLocal = sampleLocal.h + sampleLocal.H;
-						local totalDelta = sampleDelta.h + sampleDelta.H;
-						if totalLocal > totalDelta then
-							local isOnMap = x + i >= 0 and y + j >= 0 and x + i < self._width and y + j < self._height;
-							local difference = totalLocal - totalDelta;
-
-							local transferAmount;
-							if isOnMap then
-								transferAmount = math.min( difference * 0.25, sampleLocal.h * 0.25 );
-							else
-								transferAmount = difference;
-							end
-							transferAmount = math.min( sampleLocal.h - transferred, transferAmount );
-
-							assert( transferAmount >= 0 );
-							if isOnMap then
-								newField[x+i][y+j].h = newField[x+i][y+j].h + transferAmount;
-							end
-							if sampleLocal.source <= 0 then
-								newField[x][y].h = math.max( 0, newField[x][y].h - transferAmount );
-								transferred = transferred + transferAmount;
+				labels[x][y] = currentLabel;
+				table.insert( components[currentLabel], { x = x, y = y } );
+				table.insert( queue, { x = x, y = y } );
+				while #queue > 0 do
+					local p = table.remove( queue );
+					for i = -1, 1 do
+						for j = -1, 1 do
+							local nx, ny = p.x + i, p.y + j;
+							local isNeighbour = ( i ~= 0 or j ~= 0 ) and ( i == 0 or j == 0 );
+							local isOnMap = nx >= 0 and ny >= 0 and nx < self._width and ny < self._height;
+							local sampleDelta = sample( self, nx, ny );
+							if isNeighbour and isOnMap and sampleDelta.h > 0 and not labels[nx][ny] then
+								labels[nx][ny] = currentLabel;
+								table.insert( components[currentLabel], { x = nx, y = ny } );
+								table.insert( queue, { x = nx, y = ny } );
 							end
 						end
 					end
 				end
+
+				currentLabel = currentLabel + 1;
+			end
+
+		end
+	end
+
+	for _, component in ipairs( components ) do
+		local hSum = 0;
+		local HSum = 0;
+		for _, p in ipairs( component ) do
+			local sampleLocal = sample( self, p.x, p.y );
+			hSum = hSum + sampleLocal.h;
+			HSum = HSum + sampleLocal.H;
+		end
+		local hAverage = hSum / #component;
+		local HAverage = HSum / #component;
+		local zAverage = ( hSum + HSum ) / #component;
+
+		local componentCopy = TableUtils.shallowCopy( component );
+		for _, p in ipairs( componentCopy ) do
+			local sampleLocal = sample( self, p.x, p.y );
+			for i = -1, 1 do
+				for j = -1, 1 do
+					local nx, ny = p.x + i, p.y + j;
+					local isNeighbour = ( i ~= 0 or j ~= 0 ) and ( i == 0 or j == 0 );
+					local isOnMap = nx >= 0 and ny >= 0 and nx < self._width and ny < self._height;
+					local hasWater = isOnMap and labels[nx][ny];
+					local isSelfSource = sampleLocal.source > 0;
+					if isNeighbour and ( ( isOnMap and not hasWater ) or ( not isOnMap and not isSelfSource ) ) then
+						local sampleDelta = sample( self, nx, ny );
+						if sampleDelta.H <= ( sampleLocal.H + sampleLocal.h ) then
+							table.insert( component, { x = nx, y = ny } );
+						end
+					end
+				end
+			end
+		end
+
+		local hSum = 0;
+		local HSum = 0;
+		for _, p in ipairs( component ) do
+			local sampleLocal = sample( self, p.x, p.y );
+			hSum = hSum + sampleLocal.h;
+			HSum = HSum + sampleLocal.H;
+		end
+		local hAverage = hSum / #component;
+		local HAverage = HSum / #component;
+		local zAverage = ( hSum + HSum ) / #component;
+
+		for _, p in ipairs( component ) do
+			local isOnMap = p.x >= 0 and p.y >= 0 and p.x < self._width and p.y < self._height;
+			if isOnMap then
+				newField[p.x][p.y].h = math.max( 0, zAverage - newField[p.x][p.y].H );
 			end
 		end
 	end
@@ -128,7 +180,8 @@ WaterSim.draw = function( self, depthSortShader )
 
 	for x = 0, w - 1 do
 		for y = 0, h - 1 do
-			local h = MathUtils.round( self._field[x][y].h * tileAltitude );
+			local h = math.ceil( self._field[x][y].h * tileAltitude );
+			-- local h = MathUtils.round( self._field[x][y].h * tileAltitude );
 			if h > 0 then
 				love.graphics.setColor( 0, 180, 200, h * 80 );
 				local tx, ty = self._map:tilesToPixels( x, y );
