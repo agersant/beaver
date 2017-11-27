@@ -1,5 +1,4 @@
 require( "src/utils/OOP" );
-local Assets = require( "src/resources/Assets" );
 local MathUtils = require( "src/utils/MathUtils" );
 local TableUtils = require( "src/utils/TableUtils" );
 
@@ -34,7 +33,6 @@ WaterSim.init = function( self, map )
 	self._map = map;
 	self._field = {};
 	self._width, self._height = self._map:getDimensions();
-	self._surfaceTile = Assets:getImage( "assets/code/water/surface.png" );
 
 	self._time = 0;
 	self._stepsDone = 0;
@@ -199,24 +197,8 @@ WaterSim.update = function( self, dt )
 	end
 end
 
-WaterSim.draw = function( self, depthSortShader )
-	local w, h = self._map:getDimensions();
-	local tileWidth, tileHeight, tileAltitude = self._map:getTileDimensions();
-
-	for x = 0, w - 1 do
-		for y = 0, h - 1 do
-			local h = math.ceil( self._field[x][y].h * tileAltitude );
-			-- local h = MathUtils.round( self._field[x][y].h * tileAltitude );
-			if h > 0 then
-				love.graphics.setColor( 0, 180, 200, h * 80 );
-				local tx, ty = self._map:tilesToPixels( x, y );
-				depthSortShader:send( "depthThreshold", x + y );
-				love.graphics.draw( self._surfaceTile, tx - tileWidth / 2, ty - 0.5 * tileHeight );
-				love.graphics.rectangle( "fill", tx - tileWidth / 2, ty - h, tileWidth, h );
-				love.graphics.draw( self._surfaceTile, tx - tileWidth / 2, ty - 0.5 * tileHeight - h );
-			end
-		end
-	end
+WaterSim.getWaterLevelAt = function( self, x, y )
+	return self._field[x][y].h;
 end
 
 

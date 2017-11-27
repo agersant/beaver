@@ -5,6 +5,7 @@ local Input = require( "src/input/Input" );
 local Assets = require( "src/resources/Assets" );
 local Camera = require( "src/scene/Camera" );
 local Scene = require( "src/scene/Scene" );
+local MapSceneRenderer = require( "src/scene/MapSceneRenderer" );
 local WaterSim = require( "src/scene/WaterSim" );
 local TableUtils = require( "src/utils/TableUtils" );
 
@@ -16,21 +17,6 @@ local MapScene = Class( "MapScene", Scene );
 
 
 -- IMPLEMENTATION
-
-local depthSortShader = [[
-	extern Image zBuffer;
-	extern vec2 screenSize;
-	extern int depthThreshold;
-	vec4 effect( vec4 color, Image texture, vec2 textureCoords, vec2 screenCoords )
-	{
-		vec4 zBufferRead = Texel( zBuffer, screenCoords / screenSize );
-		if ( int( zBufferRead.x * 255 ) + int( zBufferRead.y * 255 ) > depthThreshold ) {
-			return vec4( 0, 0, 0, 0 );
-		}
-		vec4 local = Texel( texture, textureCoords );
-		return local * color;
-	}
-]];
 
 local removeDespawnedEntitiesFrom = function( self, list )
 	for i = #list, 1, -1 do
@@ -70,10 +56,8 @@ MapScene.init = function( self, mapName )
 	self._map = Assets:getMap( mapName );
 	self._waterSim = WaterSim:new( self._map );
 
+	self._renderer = MapSceneRenderer:new( self );
 	self._camera = Camera:new( self._map );
-
-	self._zBuffer = love.graphics.newCanvas( GFXConfig:getWindowSize() );
-	self._depthSortShader = love.graphics.newShader( depthSortShader );
 
 	self._beaver = Beaver:new( self );
 	self._beaver:getPosition():setInTiles( 5, 9 );
@@ -121,50 +105,10 @@ MapScene.update = function( self, dt )
 end
 
 MapScene.draw = function( self )
-
 	MapScene.super.draw( self );
 	love.graphics.push();
 	self._camera:applyTransforms();
-
-	-- Draw the map
-	self._map:draw();
-
-	-- Make sure we have a zBuffer canvas to draw too
-	local zBufferWidth, zBufferHeight = self._zBuffer:getDimensions();
-	local windowWidth, windowHeight = GFXConfig:getWindowSize();
-	if zBufferWidth ~= windowWidth or zBufferHeight ~= windowHeight then
-		Log:info( "Re-allocating MapScene Z Buffer" );
-		self._zBuffer = love.graphics.newCanvas( windowWidth, windowHeight );
-	end
-
-	-- Draw zBuffer
-	love.graphics.setCanvas( self._zBuffer );
-	love.graphics.clear();
-	love.graphics.setShader();
-	love.graphics.setColor( 255, 255, 255 );
-	love.graphics.setBlendMode( "replace", "premultiplied" );
-	local _, _, ox, oy = self._map:getPixelDimensions();
-	love.graphics.draw( self._map:getZBuffer(), -ox, -oy );
-	love.graphics.setCanvas();
-
-	-- Setup depth sort
-	local w, h = GFXConfig:getWindowSize();
-	love.graphics.setShader( self._depthSortShader );
-	self._depthSortShader:send( "zBuffer", self._zBuffer );
-	self._depthSortShader:send( "screenSize", { w, h } );
-	love.graphics.setBlendMode( "alpha", "alphamultiply" );
-
-	-- Draw water
-	self._waterSim:draw( self._depthSortShader );
-
-	-- Draw entities
-	love.graphics.setColor( 255, 255, 255 );
-	for _, entity in ipairs( self._drawableEntities ) do
-		local depth = entity:getPosition():getDepth();
-		self._depthSortShader:send( "depthThreshold", depth );
-		entity:draw();
-	end
-
+	self._renderer:draw();
 	love.graphics.pop();
 end
 
@@ -188,13 +132,12 @@ MapScene.getWaterSim = function( self )
 	return self._waterSim;
 end
 
-
-
--- MAP
-
 MapScene.getMap = function( self )
 	return self._map;
 end
 
+MapScene.getDrawableEntities = function( self )
+	return TableUtils.shallowCopy( self._drawableEntities );
+end
 
 return MapScene;
