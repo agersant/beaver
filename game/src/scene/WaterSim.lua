@@ -92,7 +92,9 @@ WaterSim.step = function( self )
 							local isOnMap = nx >= 0 and ny >= 0 and nx < self._width and ny < self._height;
 							local sampleDelta = sample( self, nx, ny );
 							local hasWater = sampleDelta.h > 0;
-							local isComparableZLevel = discontinuity > math.abs( ( sampleDelta.h + sampleDelta.H ) - ( sampleLocal.h + sampleLocal.H ) );
+							local zDelta = ( sampleDelta.h + sampleDelta.H - sampleDelta.source );
+							local zLocal = ( sampleLocal.h + sampleLocal.H - sampleLocal.source );
+							local isComparableZLevel = discontinuity > math.abs( zDelta - zLocal );
 							if isNeighbour and isOnMap and hasWater and isComparableZLevel and not labels[nx][ny] then
 								labels[nx][ny] = currentLabel;
 								table.insert( components[currentLabel], { x = nx, y = ny } );
@@ -116,6 +118,7 @@ WaterSim.step = function( self )
 
 		for _, p in ipairs( TableUtils.shallowCopy( component ) ) do
 			local sampleLocal = sample( self, p.x, p.y );
+			local dropped = 0 ;
 			for i = -1, 1 do
 				for j = -1, 1 do
 					local nx, ny = p.x + i, p.y + j;
@@ -128,27 +131,34 @@ WaterSim.step = function( self )
 						if ( sampleDelta.H + sampleDelta.h ) < ( sampleLocal.H + sampleLocal.h ) then
 							local deltaZ = ( sampleLocal.h + sampleLocal.H ) - ( sampleDelta.h + sampleDelta.H );
 							assert( deltaZ > 0 );
-							local isComparableZLevel = discontinuity > deltaZ;
+							local isComparableZLevel = discontinuity > ( deltaZ - sampleLocal.source + sampleDelta.source );
 							if isComparableZLevel then
-								-- print( "propagate to", nx, ny, " from ", p.x, p.y, deltaZ );
 								table.insert( component, { x = nx, y = ny } );
-							elseif isOnMap then
-								-- print( "drop to", nx, ny, " from ", p.x, p.y, deltaZ );
-								if not droplets[nx] then
-									droplets[nx] = {};
+							else
+								local existingDroplet = 0;
+								if isOnMap then
+									if not droplets[nx] then
+										droplets[nx] = {};
+									end
+									if not droplets[nx][ny] then
+										droplets[nx][ny] = 0;
+									end
+									existingDroplet = droplets[nx][ny];
 								end
-								if not droplets[nx][ny] then
-									droplets[nx][ny] = 0;
-								end
-								local transferAmount = math.min( sampleLocal.h, deltaZ - droplets[nx][ny] );
+								local transferAmount = math.min( sampleLocal.h - dropped, deltaZ - existingDroplet );
+
 								assert( transferAmount >= 0 );
+								dropped = dropped + transferAmount;
 								dropEmitters[componentIndex] = dropEmitters[componentIndex] or 0;
 								dropEmitters[componentIndex] = dropEmitters[componentIndex] + transferAmount;
-								if labels[nx][ny] then
-									dropReceivers[labels[nx][ny]] = dropReceivers[labels[nx][ny]] or 0;
-									dropReceivers[labels[nx][ny]] = dropReceivers[labels[nx][ny]] + transferAmount;
+								if isOnMap then
+									if labels[nx][ny] then
+										dropReceivers[labels[nx][ny]] = dropReceivers[labels[nx][ny]] or 0;
+										dropReceivers[labels[nx][ny]] = dropReceivers[labels[nx][ny]] + transferAmount;
+									else
+										droplets[nx][ny] = droplets[nx][ny] + transferAmount;
+									end
 								end
-								droplets[nx][ny] = droplets[nx][ny] + transferAmount;
 							end
 						end
 					end
