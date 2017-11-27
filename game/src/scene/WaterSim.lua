@@ -11,7 +11,7 @@ local WaterSim = Class( "WaterSim" );
 -- TODO Why does water map explode when this is <= 1.7
 local discontinuity = 2;
 
-local sample = function( self, x, y )
+local sample = function( self, x, y, field )
 	if x < 0 or x >= self._width or y < 0 or y >= self._height then
 		local cx = MathUtils.clamp( 0, x, self._width - 1 );
 		local cy = MathUtils.clamp( 0, y, self._height - 1 );
@@ -21,7 +21,7 @@ local sample = function( self, x, y )
 			source = 0,
 		};
 	end
-	return self._field[x][y];
+	return ( field or self._field )[x][y];
 end
 
 
@@ -36,7 +36,7 @@ WaterSim.init = function( self, map )
 
 	self._time = 0;
 	self._stepsDone = 0;
-	self._stepsPerSecond = 10;
+	self._stepsPerSecond = 5;
 
 	for x = 0, self._width - 1 do
 		self._field[x] = {};
@@ -56,27 +56,24 @@ end
 
 WaterSim.step = function( self )
 
-	local newField = {};
+	-- Initialzed connected component labels
 	local labels = {};
 	for x = 0, self._width - 1 do
-		newField[x] = {};
 		labels[x] = {};
 		for y = 0, self._height - 1 do
-			self._field[x][y].h = self._field[x][y].h + self._field[x][y].source;
-			newField[x][y] = TableUtils.shallowCopy( self._field[x][y] );
 			labels[x][y] = nil;
 		end
 	end
 
+	-- Determine connected components
 	local currentLabel = 1;
 	local components = {};
-
 	for x = 0, self._width - 1 do
 		for y = 0, self._height - 1 do
 
 			local sampleLocal = sample( self, x, y );
 
-			if sampleLocal.h > 0 and not labels[x][y] then
+			if ( sampleLocal.h > 0 or sampleLocal.source > 0 ) and not labels[x][y] then
 				components[currentLabel] = {};
 				local queue = {};
 
@@ -91,9 +88,9 @@ WaterSim.step = function( self )
 							local isNeighbour = ( i ~= 0 or j ~= 0 ) and ( i == 0 or j == 0 );
 							local isOnMap = nx >= 0 and ny >= 0 and nx < self._width and ny < self._height;
 							local sampleDelta = sample( self, nx, ny );
-							local hasWater = sampleDelta.h > 0;
-							local zDelta = ( sampleDelta.h + sampleDelta.H - sampleDelta.source );
-							local zLocal = ( sampleLocal.h + sampleLocal.H - sampleLocal.source );
+							local hasWater = sampleDelta.source > 0 or sampleDelta.h > 0;
+							local zDelta = ( sampleDelta.h + sampleDelta.H );
+							local zLocal = ( sampleLocal.h + sampleLocal.H );
 							local isComparableZLevel = discontinuity > math.abs( zDelta - zLocal );
 							if isNeighbour and isOnMap and hasWater and isComparableZLevel and not labels[nx][ny] then
 								labels[nx][ny] = currentLabel;
@@ -110,6 +107,30 @@ WaterSim.step = function( self )
 		end
 	end
 
+	-- Initialize new field
+	local newField = {};
+	for x = 0, self._width - 1 do
+		newField[x] = {};
+		for y = 0, self._height - 1 do
+			newField[x][y] = TableUtils.shallowCopy( self._field[x][y] );
+		end
+	end
+
+	-- Add water to the system
+	local rise = {};
+	for componentIndex, component in ipairs( components ) do
+		local input = 0;
+		for _, p in ipairs( component ) do
+			input = input + self._field[p.x][p.y].source;
+		end
+		rise[componentIndex] = input / #component;
+		if input > 0 then
+			for _, p in ipairs( component ) do
+				newField[p.x][p.y].h = newField[p.x][p.y].h + input / #component;
+			end
+		end
+	end
+
 	-- Compute water exchanged between components
 	local droplets = {};
 	local dropEmitters = {};
@@ -117,7 +138,7 @@ WaterSim.step = function( self )
 	for componentIndex, component in ipairs( components ) do
 
 		for _, p in ipairs( TableUtils.shallowCopy( component ) ) do
-			local sampleLocal = sample( self, p.x, p.y );
+			local sampleLocal = sample( self, p.x, p.y, newField );
 			local dropped = 0 ;
 			for i = -1, 1 do
 				for j = -1, 1 do
@@ -127,12 +148,13 @@ WaterSim.step = function( self )
 					local isOtherComponent = isOnMap and labels[nx][ny] ~= componentIndex;
 					local isLeak = not isOnMap and sampleLocal.source == 0;
 					if isNeighbour and ( isOtherComponent or isLeak ) then
-						local sampleDelta = sample( self, nx, ny );
+						local sampleDelta = sample( self, nx, ny, newField );
 						if ( sampleDelta.H + sampleDelta.h ) < ( sampleLocal.H + sampleLocal.h ) then
 							local deltaZ = ( sampleLocal.h + sampleLocal.H ) - ( sampleDelta.h + sampleDelta.H );
 							assert( deltaZ > 0 );
-							local isComparableZLevel = discontinuity > ( deltaZ - sampleLocal.source + sampleDelta.source );
+							local isComparableZLevel = discontinuity > ( deltaZ - rise[componentIndex] );
 							if isComparableZLevel then
+								-- print( "propagate from ", p.x, p.y, " to ", nx, ny, rise[componentIndex] );
 								table.insert( component, { x = nx, y = ny } );
 							else
 								local existingDroplet = 0;
@@ -145,9 +167,8 @@ WaterSim.step = function( self )
 									end
 									existingDroplet = droplets[nx][ny];
 								end
-								local transferAmount = math.min( sampleLocal.h - dropped, deltaZ - existingDroplet );
-
-								assert( transferAmount >= 0 );
+								local transferAmount = math.max( 0, math.min( sampleLocal.h - dropped, deltaZ - existingDroplet ) );
+								-- print( "drop from ", p.x, p.y, " to ", nx, ny, transferAmount );
 								dropped = dropped + transferAmount;
 								dropEmitters[componentIndex] = dropEmitters[componentIndex] or 0;
 								dropEmitters[componentIndex] = dropEmitters[componentIndex] + transferAmount;
@@ -168,17 +189,11 @@ WaterSim.step = function( self )
 
 	end
 
-	for x, d in pairs( droplets ) do
-		for y, amount in pairs( d ) do
-			newField[x][y].h = newField[x][y].h + amount;
-		end
-	end
-
-	-- Level components
+	-- Adjust z level of components based on exchanges
 	for componentIndex, component in ipairs( components ) do
 		local zSum = 0;
 		for _, p in ipairs( component ) do
-			local sampleLocal = sample( self, p.x, p.y );
+			local sampleLocal = sample( self, p.x, p.y, newField );
 			zSum = zSum + sampleLocal.h + sampleLocal.H;
 		end
 		if dropEmitters[componentIndex] then
@@ -196,7 +211,28 @@ WaterSim.step = function( self )
 		end
 	end
 
+	-- Drop water outside existing components
+	for x, d in pairs( droplets ) do
+		for y, amount in pairs( d ) do
+			newField[x][y].h = newField[x][y].h + amount;
+		end
+	end
+
 	self._field = newField;
+
+	-- print( "STEP " .. self._stepsDone );
+	-- self._field = newField;
+	-- local volume = 0;
+	-- for y = 0, self._height - 1 do
+	-- 	local line = "";
+	-- 	for x = 0, self._width - 1 do
+	-- 		volume = volume + self._field[x][y].h;
+	-- 		line = line .. ", " .. string.format( "%.2f", self._field[x][y].h );
+	-- 	end
+	-- 	print( line );
+	-- end
+	-- print( "Volume: ", volume );
+	-- print( "" );
 end
 
 WaterSim.update = function( self, dt )
