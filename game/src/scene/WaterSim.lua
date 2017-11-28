@@ -56,7 +56,7 @@ end
 
 WaterSim.step = function( self )
 
-	-- Initialzed connected component labels
+	-- Initialize connected component labels
 	local labels = {};
 	for x = 0, self._width - 1 do
 		labels[x] = {};
@@ -65,7 +65,7 @@ WaterSim.step = function( self )
 		end
 	end
 
-	-- Determine connected components
+	-- Assign connected components
 	local currentLabel = 1;
 	local components = {};
 	for x = 0, self._width - 1 do
@@ -116,30 +116,53 @@ WaterSim.step = function( self )
 		end
 	end
 
-	-- Add water to the system
-	local rise = {};
+	-- Initialize exchange data structures
+	local dropInputs = {}; -- Index by component, values are water received from other components
 	for componentIndex, component in ipairs( components ) do
-		local input = 0;
-		for _, p in ipairs( component ) do
-			input = input + self._field[p.x][p.y].source;
-		end
-		rise[componentIndex] = input / #component;
-		if input > 0 then
-			for _, p in ipairs( component ) do
-				newField[p.x][p.y].h = newField[p.x][p.y].h + input / #component;
-			end
-		end
+		dropInputs[componentIndex] = 0;
 	end
 
-	-- Compute water exchanged between components
-	local droplets = {};
-	local dropEmitters = {};
-	local dropReceivers = {};
-	for componentIndex, component in ipairs( components ) do
+	-- Sort components by z level
+	local sortedComponentIndices = {};
+	for i = 1, #components do
+		sortedComponentIndices[i] = i;
+	end
+	table.sort( sortedComponentIndices, function( a, b )
+		local x, y = components[a][1].x, components[a][1].y;
+		zA = newField[x][y].H + newField[x][y].h;
+		local x, y = components[b][1].x, components[b][1].y;
+		zB = newField[x][y].H + newField[x][y].h;
+		return zA > zB;
+	end );
 
-		for _, p in ipairs( TableUtils.shallowCopy( component ) ) do
+	-- Update components one by one
+	for i = 1, #components do
+		local componentIndex = sortedComponentIndices[i];
+		local component = components[componentIndex];
+
+		-- Count amount of water received from sources and waterfalls
+		local waterInput = dropInputs[componentIndex];
+		for _, p in ipairs( component ) do
+			waterInput = waterInput + self._field[p.x][p.y].source;
+		end
+
+		-- Spread water received evenly
+		local volume = 0;
+		if waterInput > 0 then
+			for _, p in ipairs( component ) do
+				newField[p.x][p.y].h = newField[p.x][p.y].h + waterInput / #component;
+				volume = volume + newField[p.x][p.y].h;
+			end
+		end
+
+		-- Find pours (water falls into other component) and droplets (water falls on dry tile)
+		local waterOutput = 0;
+		local pours = {}; 		-- drops onto other connected components
+		local droplets = {};	-- drops onto dry tiles
+		local dropTargets = {};	-- keep track of how much water we're dropping on individual tiles to avoid pouring too much on a given spot
+
+		for _, p in ipairs( component ) do
 			local sampleLocal = sample( self, p.x, p.y, newField );
-			local dropped = 0 ;
 			for i = -1, 1 do
 				for j = -1, 1 do
 					local nx, ny = p.x + i, p.y + j;
@@ -148,38 +171,18 @@ WaterSim.step = function( self )
 					local isOtherComponent = isOnMap and labels[nx][ny] ~= componentIndex;
 					local isLeak = not isOnMap and sampleLocal.source == 0;
 					if isNeighbour and ( isOtherComponent or isLeak ) then
-						local sampleDelta = sample( self, nx, ny, newField );
-						if ( sampleDelta.H + sampleDelta.h ) < ( sampleLocal.H + sampleLocal.h ) then
-							local deltaZ = ( sampleLocal.h + sampleLocal.H ) - ( sampleDelta.h + sampleDelta.H );
-							assert( deltaZ > 0 );
-							local isComparableZLevel = discontinuity > ( deltaZ - rise[componentIndex] );
-							if isComparableZLevel then
-								-- print( "propagate from ", p.x, p.y, " to ", nx, ny, rise[componentIndex] );
-								table.insert( component, { x = nx, y = ny } );
+						local sampleNeighbour = sample( self, nx, ny, newField );
+						local zLocal = ( sampleLocal.H + sampleLocal.h );
+						local zNeighbour = ( sampleNeighbour.H + sampleNeighbour.h );
+						local deltaZ = zLocal - zNeighbour;
+						if deltaZ > 0 and ( deltaZ - waterInput / #component ) > discontinuity then
+							dropTargets[nx] = dropTargets[nx] or {};
+							dropTargets[nx][ny] = 0;
+							if isOnMap and labels[nx][ny] then
+								pours[labels[nx][ny]] = 0;
 							else
-								local existingDroplet = 0;
-								if isOnMap then
-									if not droplets[nx] then
-										droplets[nx] = {};
-									end
-									if not droplets[nx][ny] then
-										droplets[nx][ny] = 0;
-									end
-									existingDroplet = droplets[nx][ny];
-								end
-								local transferAmount = math.max( 0, math.min( sampleLocal.h - dropped, deltaZ - existingDroplet ) );
-								-- print( "drop from ", p.x, p.y, " to ", nx, ny, transferAmount );
-								dropped = dropped + transferAmount;
-								dropEmitters[componentIndex] = dropEmitters[componentIndex] or 0;
-								dropEmitters[componentIndex] = dropEmitters[componentIndex] + transferAmount;
-								if isOnMap then
-									if labels[nx][ny] then
-										dropReceivers[labels[nx][ny]] = dropReceivers[labels[nx][ny]] or 0;
-										dropReceivers[labels[nx][ny]] = dropReceivers[labels[nx][ny]] + transferAmount;
-									else
-										droplets[nx][ny] = droplets[nx][ny] + transferAmount;
-									end
-								end
+								droplets[nx] = droplets[nx] or {};
+								droplets[nx][ny] = 0;
 							end
 						end
 					end
@@ -187,20 +190,134 @@ WaterSim.step = function( self )
 			end
 		end
 
-	end
+		local numDropTargets = 0;
+		for x, t in pairs( dropTargets ) do
+			for y, _ in pairs( t ) do
+				numDropTargets = numDropTargets + 1;
+			end
+		end
 
-	-- Adjust z level of components based on exchanges
-	for componentIndex, component in ipairs( components ) do
+		local numOutputTargets = TableUtils.countKeys( pours );
+		for x, t in pairs( droplets ) do
+			for y, _ in pairs( t ) do
+				numOutputTargets = numOutputTargets + 1;
+			end
+		end
+
+		-- Decide how much water can be dropped into each pour/droplet
+		for _, p in ipairs( component ) do
+			local sampleLocal = sample( self, p.x, p.y, newField );
+			for i = -1, 1 do
+				for j = -1, 1 do
+					local nx, ny = p.x + i, p.y + j;
+					local isNeighbour = ( i ~= 0 or j ~= 0 ) and ( i == 0 or j == 0 );
+					local isOnMap = nx >= 0 and ny >= 0 and nx < self._width and ny < self._height;
+					local isOtherComponent = isOnMap and labels[nx][ny] ~= componentIndex;
+					local isLeak = not isOnMap and sampleLocal.source == 0;
+					if isNeighbour and ( isOtherComponent or isLeak ) then
+						local sampleNeighbour = sample( self, nx, ny, newField );
+						local zLocal = ( sampleLocal.H + sampleLocal.h );
+						local zNeighbour = ( sampleNeighbour.H + sampleNeighbour.h );
+						local deltaZ = zLocal - zNeighbour;
+						if deltaZ > 0 and ( deltaZ - waterInput / #component ) > discontinuity then
+							local zNeighbourFutureOffset = 0;
+							if isOnMap and labels[nx][ny] then
+								zNeighbourFutureOffset = ( dropInputs[labels[nx][ny]] + pours[labels[nx][ny]] ) / #components[labels[nx][ny]];
+							else
+								zNeighbourFutureOffset = droplets[nx][ny];
+							end
+
+							local oldTransfer = dropTargets[nx][ny];
+							-- TODO the 0 multiplied makes water flows behave as intended (dam map doesn't overflow), but will prevent still water from falling!
+							-- Maybe check if waterInput is 0, and allow sampleLocal.h to drop only then?
+							dropTargets[nx][ny] = math.min( dropTargets[nx][ny] + 0*sampleLocal.h + waterInput / numDropTargets, math.max( 0, deltaZ - zNeighbourFutureOffset ) );
+							waterOutput = waterOutput + dropTargets[nx][ny] - oldTransfer;
+
+							if isOnMap and labels[nx][ny] then
+								pours[labels[nx][ny]] = pours[labels[nx][ny]] + dropTargets[nx][ny] - oldTransfer;
+							else
+								droplets[nx][ny] = droplets[nx][ny] + dropTargets[nx][ny] - oldTransfer;
+							end
+						end
+					end
+				end
+			end
+		end
+
+		-- Pour water out!
+		if numOutputTargets > 0 then
+			waterOutput = math.min( volume, waterOutput );
+
+			local transferred = 0;
+			while transferred < waterOutput and numOutputTargets > 0 do
+				local oldTransferred = transferred;
+				local w = ( waterOutput - transferred ) / numOutputTargets;
+
+				-- Pour to other component
+				for label, amount in pairs( TableUtils.shallowCopy( pours ) ) do
+					local t = math.max( 0, math.min( w, amount ) );
+					dropInputs[label] = dropInputs[label] + t;
+					transferred = transferred + t;
+					pours[label] = pours[label] - t;
+					if pours[label] <= 0 then
+						pours[label] = nil;
+						numOutputTargets = numOutputTargets - 1;
+					end
+				end
+
+				-- Pour to droplet
+				for x, t in pairs( droplets ) do
+					for y, amount in pairs( TableUtils.shallowCopy( t ) ) do
+						local t = math.max( 0, math.min( w, amount ) );
+						transferred = transferred + t;
+						droplets[x][y] = droplets[x][y] - t;
+						local isOnMap = x >= 0 and y >= 0 and x < self._width and y < self._height;
+						if isOnMap then
+							newField[x][y].h = newField[x][y].h + t;
+						end
+						if droplets[x][y] <= 0 then
+							droplets[x][y] = nil;
+							numOutputTargets = numOutputTargets - 1;
+						end
+					end
+				end
+
+			end
+
+			for _, p in ipairs( component ) do
+				newField[p.x][p.y].h = math.max( 0, newField[p.x][p.y].h - waterOutput / #component );
+			end
+		end
+
+		-- Expand to nearby tiles
+		for _, p in ipairs( TableUtils.shallowCopy( component ) ) do
+			local sampleLocal = sample( self, p.x, p.y, newField );
+			for i = -1, 1 do
+				for j = -1, 1 do
+					local nx, ny = p.x + i, p.y + j;
+					local isNeighbour = ( i ~= 0 or j ~= 0 ) and ( i == 0 or j == 0 );
+					local isOnMap = nx >= 0 and ny >= 0 and nx < self._width and ny < self._height;
+					local isOtherComponent = isOnMap and labels[nx][ny] ~= componentIndex;
+					local isLeak = not isOnMap and sampleLocal.source == 0;
+					if isNeighbour and ( isOtherComponent or isLeak ) then
+						local sampleNeighbour = sample( self, nx, ny, newField );
+						local zLocal = ( sampleLocal.H + sampleLocal.h );
+						local zNeighbour = ( sampleNeighbour.H + sampleNeighbour.h );
+						local deltaZ = zLocal - zNeighbour;
+						local isDropTarget = dropTargets[nx] and dropTargets[nx][ny];
+						if deltaZ > 0 and not isDropTarget then
+							table.insert( component, { x = nx, y = ny } );
+						end
+					end
+				end
+			end
+		end
+
+		-- Level
 		local zSum = 0;
 		for _, p in ipairs( component ) do
 			local sampleLocal = sample( self, p.x, p.y, newField );
 			zSum = zSum + sampleLocal.h + sampleLocal.H;
-		end
-		if dropEmitters[componentIndex] then
-			zSum = zSum - dropEmitters[componentIndex];
-		end
-		if dropReceivers[componentIndex] then
-			zSum = zSum + dropReceivers[componentIndex];
 		end
 		local zAverage = zSum / #component;
 		for _, p in ipairs( component ) do
@@ -211,28 +328,21 @@ WaterSim.step = function( self )
 		end
 	end
 
-	-- Drop water outside existing components
-	for x, d in pairs( droplets ) do
-		for y, amount in pairs( d ) do
-			newField[x][y].h = newField[x][y].h + amount;
-		end
-	end
-
 	self._field = newField;
 
-	-- print( "STEP " .. self._stepsDone );
-	-- self._field = newField;
-	-- local volume = 0;
-	-- for y = 0, self._height - 1 do
-	-- 	local line = "";
-	-- 	for x = 0, self._width - 1 do
-	-- 		volume = volume + self._field[x][y].h;
-	-- 		line = line .. ", " .. string.format( "%.2f", self._field[x][y].h );
-	-- 	end
-	-- 	print( line );
-	-- end
-	-- print( "Volume: ", volume );
-	-- print( "" );
+	print( "STEP " .. self._stepsDone );
+	self._field = newField;
+	local volume = 0;
+	for y = 0, self._height - 1 do
+		local line = "";
+		for x = 0, self._width - 1 do
+			volume = volume + self._field[x][y].h;
+			line = line .. ", " .. string.format( "%.2f", self._field[x][y].h );
+		end
+		-- print( line );
+	end
+	print( "Volume: ", volume );
+	print( "" );
 end
 
 WaterSim.update = function( self, dt )
