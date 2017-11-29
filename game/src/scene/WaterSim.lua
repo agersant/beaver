@@ -8,8 +8,17 @@ local WaterSim = Class( "WaterSim" );
 
 -- IMPLEMENTATION
 
--- TODO Why does water map explode when this is <= 1.7
+-- Minimum difference in water level for two tiles to not be considered as
+-- part of the same connected component. Being part of the same component
+-- makes water levels line up instantly, while water pours gradually between
+-- distinct components.
 local discontinuity = 2;
+
+-- How much faster water is allowed to leave the map than it enters.
+-- Setting this value higher makes it more difficult for a river to overflow.
+-- Current value of 2 allows a river to stay within its bed as long as there
+-- are at least half as many output tiles as input tiles (regardless of input flow).
+local allowedOverflow = 2;
 
 local sample = function( self, x, y, field )
 	if x < 0 or x >= self._width or y < 0 or y >= self._height then
@@ -51,6 +60,9 @@ WaterSim.init = function( self, map )
 
 	for _, source in ipairs( self._map:getWaterSources() ) do
 		self._field[source.x][source.y].source = source.flow;
+	end
+	for _, source in ipairs( self._map:getWaterFills() ) do
+		self._field[source.x][source.y].h = source.height;
 	end
 end
 
@@ -148,11 +160,9 @@ WaterSim.step = function( self )
 
 		-- Spread water received evenly
 		local volume = 0;
-		if waterInput > 0 then
-			for _, p in ipairs( component ) do
-				newField[p.x][p.y].h = newField[p.x][p.y].h + waterInput / #component;
-				volume = volume + newField[p.x][p.y].h;
-			end
+		for _, p in ipairs( component ) do
+			newField[p.x][p.y].h = newField[p.x][p.y].h + waterInput / #component;
+			volume = volume + newField[p.x][p.y].h;
 		end
 
 		-- Find pours (water falls into other component) and droplets (water falls on dry tile)
@@ -175,7 +185,7 @@ WaterSim.step = function( self )
 						local zLocal = ( sampleLocal.H + sampleLocal.h );
 						local zNeighbour = ( sampleNeighbour.H + sampleNeighbour.h );
 						local deltaZ = zLocal - zNeighbour;
-						if deltaZ > 0 and ( deltaZ - waterInput / #component ) > discontinuity then
+						if deltaZ > 0 and ( isLeak or ( deltaZ - waterInput / #component ) > discontinuity ) then
 							dropTargets[nx] = dropTargets[nx] or {};
 							dropTargets[nx][ny] = 0;
 							if isOnMap and labels[nx][ny] then
@@ -219,7 +229,7 @@ WaterSim.step = function( self )
 						local zLocal = ( sampleLocal.H + sampleLocal.h );
 						local zNeighbour = ( sampleNeighbour.H + sampleNeighbour.h );
 						local deltaZ = zLocal - zNeighbour;
-						if deltaZ > 0 and ( deltaZ - waterInput / #component ) > discontinuity then
+						if deltaZ > 0 and ( isLeak or ( deltaZ - waterInput / #component ) > discontinuity ) then
 							local zNeighbourFutureOffset = 0;
 							if isOnMap and labels[nx][ny] then
 								zNeighbourFutureOffset = ( dropInputs[labels[nx][ny]] + pours[labels[nx][ny]] ) / #components[labels[nx][ny]];
@@ -228,9 +238,16 @@ WaterSim.step = function( self )
 							end
 
 							local oldTransfer = dropTargets[nx][ny];
-							-- TODO the 0 multiplied makes water flows behave as intended (dam map doesn't overflow), but will prevent still water from falling!
-							-- Maybe check if waterInput is 0, and allow sampleLocal.h to drop only then?
-							dropTargets[nx][ny] = math.min( dropTargets[nx][ny] + 0*sampleLocal.h + waterInput / numDropTargets, math.max( 0, deltaZ - zNeighbourFutureOffset ) );
+							if waterInput == 0 then
+								dropTargets[nx][ny] = dropTargets[nx][ny] + sampleLocal.h;
+							else
+								dropTargets[nx][ny] = dropTargets[nx][ny] + waterInput / numDropTargets;
+							end
+							if not isLeak then
+								dropTargets[nx][ny] = math.min( dropTargets[nx][ny], math.max( 0, deltaZ - zNeighbourFutureOffset ) );
+							else
+								dropTargets[nx][ny] = math.min( dropTargets[nx][ny], math.max( 0, allowedOverflow * deltaZ - zNeighbourFutureOffset ) );
+							end
 							waterOutput = waterOutput + dropTargets[nx][ny] - oldTransfer;
 
 							if isOnMap and labels[nx][ny] then
@@ -330,19 +347,19 @@ WaterSim.step = function( self )
 
 	self._field = newField;
 
-	print( "STEP " .. self._stepsDone );
-	self._field = newField;
-	local volume = 0;
-	for y = 0, self._height - 1 do
-		local line = "";
-		for x = 0, self._width - 1 do
-			volume = volume + self._field[x][y].h;
-			line = line .. ", " .. string.format( "%.2f", self._field[x][y].h );
-		end
+	-- print( "STEP " .. self._stepsDone );
+	-- self._field = newField;
+	-- local volume = 0;
+	-- for y = 0, self._height - 1 do
+	-- 	local line = "";
+	-- 	for x = 0, self._width - 1 do
+	-- 		volume = volume + self._field[x][y].h;
+	-- 		line = line .. ", " .. string.format( "%.2f", self._field[x][y].h );
+	-- 	end
 		-- print( line );
-	end
-	print( "Volume: ", volume );
-	print( "" );
+	-- end
+	-- print( "Volume: ", volume );
+	-- print( "" );
 end
 
 WaterSim.update = function( self, dt )
