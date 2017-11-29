@@ -1,0 +1,709 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" tiledversion="1.0.3" orientation="isometric" renderorder="right-down" width="20" height="20" tilewidth="32" tileheight="16" nextobjectid="108">
+ <tileset firstgid="1" source="../tileset/canada.tsx"/>
+ <layer name="Tile Layer 1" width="20" height="20">
+  <data encoding="csv">
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+</data>
+ </layer>
+ <layer name="Tile Layer 2" width="20" height="20" offsetx="0" offsety="-8">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer name="Copy of Tile Layer 2" width="20" height="20" offsetx="0" offsety="-16">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer name="Copy of Copy of Tile Layer 2" width="20" height="20" offsetx="0" offsety="-24">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer name="Copy of Copy of Copy of Tile Layer 2" width="20" height="20" offsetx="0" offsety="-32">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer name="Copy of Copy of Copy of Copy of Tile Layer 2" width="20" height="20" offsetx="0" offsety="-40">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <layer name="Copy of Copy of Copy of Copy of Copy of Tile Layer 2" width="20" height="20" offsetx="0" offsety="-48">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+ <objectgroup name="Object Layer 1" offsetx="0" offsety="-56">
+  <object id="1" type="fill" x="48" y="256" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="2" type="fill" x="48" y="240" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="3" type="fill" x="48" y="224" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="4" type="fill" x="48" y="208" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="5" type="fill" x="48" y="192" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="6" type="fill" x="48" y="176" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="7" type="fill" x="48" y="160" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="8" type="fill" x="48" y="144" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="9" type="fill" x="48" y="128" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="10" type="fill" x="48" y="112" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="11" type="fill" x="48" y="96" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="12" type="fill" x="48" y="96" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="13" type="fill" x="64" y="208" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="14" type="fill" x="64" y="96" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="15" type="fill" x="64" y="240" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="16" type="fill" x="64" y="128" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="17" type="fill" x="64" y="224" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="18" type="fill" x="64" y="256" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="19" type="fill" x="64" y="96" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="20" type="fill" x="64" y="192" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="21" type="fill" x="64" y="144" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="22" type="fill" x="64" y="112" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="23" type="fill" x="64" y="176" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="24" type="fill" x="64" y="160" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="25" type="fill" x="96" y="208" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="26" type="fill" x="96" y="96" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="27" type="fill" x="96" y="256" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="28" type="fill" x="96" y="176" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="29" type="fill" x="80" y="176" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="30" type="fill" x="96" y="128" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="31" type="fill" x="80" y="208" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="32" type="fill" x="80" y="224" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="33" type="fill" x="96" y="96" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="34" type="fill" x="96" y="240" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="35" type="fill" x="80" y="192" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="36" type="fill" x="96" y="224" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="37" type="fill" x="96" y="144" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="38" type="fill" x="80" y="144" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="39" type="fill" x="80" y="160" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="40" type="fill" x="96" y="160" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="41" type="fill" x="80" y="112" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="42" type="fill" x="80" y="96" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="43" type="fill" x="80" y="256" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="44" type="fill" x="80" y="128" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="45" type="fill" x="96" y="112" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="46" type="fill" x="80" y="96" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="47" type="fill" x="96" y="192" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="48" type="fill" x="80" y="240" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="49" type="fill" x="128" y="208" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="50" type="fill" x="128" y="96" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="51" type="fill" x="128" y="256" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="52" type="fill" x="128" y="176" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="53" type="fill" x="112" y="176" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="54" type="fill" x="128" y="128" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="55" type="fill" x="112" y="208" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="56" type="fill" x="112" y="224" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="57" type="fill" x="128" y="96" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="58" type="fill" x="128" y="240" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="59" type="fill" x="112" y="192" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="60" type="fill" x="128" y="224" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="61" type="fill" x="128" y="144" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="62" type="fill" x="112" y="144" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="63" type="fill" x="112" y="160" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="64" type="fill" x="128" y="160" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="65" type="fill" x="112" y="112" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="66" type="fill" x="112" y="96" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="67" type="fill" x="112" y="256" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="68" type="fill" x="112" y="128" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="69" type="fill" x="128" y="112" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="70" type="fill" x="112" y="96" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="71" type="fill" x="128" y="192" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="72" type="fill" x="112" y="240" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="73" type="fill" x="160" y="208" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="74" type="fill" x="160" y="96" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="75" type="fill" x="160" y="256" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="76" type="fill" x="160" y="176" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="77" type="fill" x="144" y="176" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="78" type="fill" x="160" y="128" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="79" type="fill" x="144" y="208" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="80" type="fill" x="144" y="224" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="81" type="fill" x="160" y="96" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="82" type="fill" x="160" y="240" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="83" type="fill" x="144" y="192" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="84" type="fill" x="160" y="224" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="85" type="fill" x="160" y="144" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="86" type="fill" x="144" y="144" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="87" type="fill" x="144" y="160" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="88" type="fill" x="160" y="160" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="89" type="fill" x="144" y="112" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="90" type="fill" x="144" y="96" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="91" type="fill" x="144" y="256" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="92" type="fill" x="144" y="128" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="93" type="fill" x="160" y="112" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="94" type="fill" x="144" y="96" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="95" type="fill" x="160" y="192" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="96" type="fill" x="144" y="240" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="97" type="fill" x="176" y="160" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="98" type="fill" x="176" y="176" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="99" type="fill" x="176" y="144" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="100" type="fill" x="176" y="128" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="101" type="fill" x="176" y="240" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="102" type="fill" x="176" y="192" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="103" type="fill" x="176" y="256" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="104" type="fill" x="176" y="208" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="105" type="fill" x="176" y="96" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="106" type="fill" x="176" y="112" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+  <object id="107" type="fill" x="176" y="224" width="16" height="16">
+   <properties>
+    <property name="height" type="int" value="6"/>
+   </properties>
+  </object>
+ </objectgroup>
+</map>
