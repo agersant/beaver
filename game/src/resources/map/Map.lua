@@ -12,6 +12,7 @@ local Map = Class( "Map" );
 
 local initWater = function( self, mapData )
 	self._waterSources = {};
+	self._waterFills = {};
 	for _, layerData in ipairs( mapData.content.layers ) do
 		if layerData.type == "objectgroup" then
 			for _, object in ipairs( layerData.objects ) do
@@ -23,6 +24,15 @@ local initWater = function( self, mapData )
 						flow = object.properties.flow;
 					end
 					table.insert( self._waterSources, { x = x, y = y, flow = flow } );
+				end
+				if object.type == "fill" then
+					local x = math.floor( object.x / ( self._tileWidth / 2 ) );
+					local y = math.floor( object.y / self._tileHeight );
+					local height = 1;
+					if object.properties and object.properties.height then
+						height = object.properties.height or 1;
+					end
+					table.insert( self._waterFills, { x = x, y = y, height = height } );
 				end
 			end
 		end
@@ -138,8 +148,12 @@ Map.getAltitude = function( self, x, y )
 	return self._altitudes[x][y];
 end
 
-Map.getWaterSources = function( self, x, y )
+Map.getWaterSources = function( self )
 	return self._waterSources;
+end
+
+Map.getWaterFills = function( self )
+	return self._waterFills;
 end
 
 
