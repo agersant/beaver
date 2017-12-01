@@ -44,6 +44,10 @@ Camera.zoomOut = function( self )
 	self._zoom = math.max( 1, self._zoom - 1 );
 end
 
+Camera.getZoom = function( self )
+	return self._zoom;
+end
+
 Camera.update = function( self, dt )
 	local windowWidth, windowHeight = GFXConfig:getWindowSize();
 	local mx, my = love.mouse.getPosition();

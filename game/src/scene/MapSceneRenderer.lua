@@ -9,13 +9,22 @@ local MapSceneRenderer = Class( "MapSceneRenderer" );
 
 -- SHADERS
 
+local debugZBufferShader = [[
+	vec4 effect( vec4 color, Image texture, vec2 textureCoords, vec2 screenCoords )
+	{
+		vec4 local = Texel( texture, textureCoords );
+		local *= color * vec4( 10, 10, 10, 1 );
+		local.a = 1;
+		return local;
+	}
+]];
+
 local depthSortShader = [[
 	extern Image zBuffer;
-	extern vec2 screenSize;
 	extern int depthThreshold;
 	vec4 effect( vec4 color, Image texture, vec2 textureCoords, vec2 screenCoords )
 	{
-		vec4 zBufferRead = Texel( zBuffer, screenCoords / screenSize );
+		vec4 zBufferRead = Texel( zBuffer, screenCoords / love_ScreenSize.xy );
 		if ( int( zBufferRead.x * 255 ) + int( zBufferRead.y * 255 ) > depthThreshold ) {
 			return vec4( 0, 0, 0, 0 );
 		}
@@ -24,16 +33,35 @@ local depthSortShader = [[
 	}
 ]];
 
-local silhouetteShader = [[
-	vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords)
+local depthWriteShader = [[
+#ifdef VERTEX
+	attribute vec4 mData;
+	varying out vec4 data;
+	vec4 position( mat4 transformProjection, vec4 vertexPosition )
 	{
-		vec4 texturecolor = Texel(texture, texture_coords);
+		data = mData;
+		return transformProjection * vertexPosition;
+	}
+#endif
+
+#ifdef PIXEL
+	extern Image zBuffer;
+	in vec4 data;
+
+	vec4 effect( vec4 color, Image texture, vec2 textureCoords, vec2 screenCoords )
+	{
+		vec4 texturecolor = Texel( texture, textureCoords );
 		if (texturecolor.a == 0)
 		{
 			discard;
 		}
-		return color;
+		vec4 zBufferRead = Texel( zBuffer, screenCoords / love_ScreenSize.xy );
+		if ( int( zBufferRead.x * 255 ) + int( zBufferRead.y * 255 ) > int( data.x * 255 ) + int( data.y * 255 ) ) {
+			discard;
+		}
+		return data;
 	}
+#endif
 ]];
 
 local outlineShader = [[
@@ -48,7 +76,7 @@ local outlineShader = [[
 	vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords)
 	{
 		vec4 local = Texel(texture, texture_coords);
-		vec4 down = Texel(texture, texture_coords + vec2( 0, vDelta ));
+		vec4 down = Texel(texture, texture_coords + vec2( 0, vDelta / love_ScreenSize.y ) );
 		if ( local.z >= down.z )
 		{
 			discard;
@@ -70,6 +98,31 @@ local outlineShader = [[
 	}
 ]];
 
+local waterShader = [[
+	#ifdef VERTEX
+		attribute vec4 mData;
+		varying out vec4 data;
+		vec4 position( mat4 transform_projection, vec4 vertex_position )
+        {
+			data = mData;
+            return transform_projection * vertex_position;
+        }
+	#endif
+
+	#ifdef PIXEL
+		extern Image zBuffer;
+		in vec4 data;
+		vec4 effect( vec4 color, Image texture, vec2 textureCoords, vec2 screenCoords )
+		{
+			vec4 zBufferRead = Texel( zBuffer, screenCoords / love_ScreenSize.xy );
+			if ( int( zBufferRead.x * 255 ) + int( zBufferRead.y * 255 ) > int( data.x * 255 ) + int( data.y * 255 ) ) {
+				discard;
+			}
+			vec4 local = Texel( texture, textureCoords );
+			return local * color;
+		}
+	#endif
+]];
 
 -- INIT
 
@@ -108,7 +161,8 @@ local createTileBatch = function( self )
 	local mapWidth, mapHeight, mapAltitude = map:getDimensions();
 
 	local maxTiles = mapWidth * mapHeight * mapAltitude;
-	local batch = love.graphics.newSpriteBatch( tilesetImage, maxTiles );
+	local batch = love.graphics.newSpriteBatch( tilesetImage, maxTiles, "static" );
+	local mesh = love.graphics.newMesh( { { "mData", "byte", 4 } }, 4 * batch:getBufferSize(), "fan", "static" );
 
 	for z = 1, mapAltitude do
 		for x = 0, mapWidth - 1 do
@@ -119,139 +173,136 @@ local createTileBatch = function( self )
 					quad:setViewport( tx * tileImageWidth, ty * tileImageHeight, tileImageWidth, tileImageHeight );
 					local px = ( x - y ) * tileWidth / 2;
 					local py = -( ( z - 1 ) * tileAltitude ) + ( x + y ) * tileHeight / 2;
-					batch:add( quad, px, py );
-				end
-			end
-		end
-	end
+					local id = batch:add( quad, px, py );
 
-	return batch;
-end
-
-local createMapZBuffer = function( self )
-
-	local map = self._mapScene:getMap();
-	local tileset = map:getTileset();
-	local tilesetWidth = tileset:getWidthInTiles();
-	local tileImageWidth = tileset:getTileWidth();
-	local tileImageHeight = tileset:getTileHeight();
-	local tilesetImage = tileset:getImage();
-	local quad = love.graphics.newQuad( 0, 0, 0, 0, tilesetImage:getDimensions() );
-	local tileWidth, tileHeight, tileAltitude = map:getTileDimensions();
-	local mapWidth, mapHeight, mapAltitude = map:getDimensions();
-
-	love.graphics.reset();
-
-	local flatShader = love.graphics.newShader( silhouetteShader );
-	love.graphics.setShader( flatShader );
-	love.graphics.setBlendMode( "replace", "premultiplied" );
-
-	local canvas = love.graphics.newCanvas( self._pixelWidth, self._pixelHeight, "rgba8" );
-	love.graphics.setCanvas( canvas );
-
-	for z = 1, mapAltitude do
-		for x = 0, mapWidth - 1 do
-			for y = 0, mapHeight - 1 do
-				local tileID = map:getTileAt( x, y, z );
-				if tileID >= 0 then
-					local tx, ty = MathUtils.indexToXY( tileID, tilesetWidth );
-					quad:setViewport( tx * tileImageWidth, ty * tileImageHeight, tileImageWidth, tileImageHeight );
-					local h = ( z - 1 ) * tileAltitude;
-					local px = self._originX + ( x - y ) * tileWidth / 2 ;
-					local py = self._originY - h + ( x + y ) * tileHeight / 2;
 					local flags = 0;
 					local tileData = tileset:getTileData( tileID );
 					if tileData then
 						flags = tileData.flags;
 					end
-					love.graphics.setColor( x, y, z, flags );
-					love.graphics.draw( tilesetImage, quad, px, py );
+					for i = 1, 4 do
+						mesh:setVertex( 4 * ( id - 1 ) + i, x, y, z, flags );
+					end
 				end
 			end
 		end
 	end
 
-	local zBufferData = canvas:newImageData();
-	local zBuffer = love.graphics.newImage( zBufferData );
-	zBuffer:setFilter( "nearest", "nearest", 0 );
-	return zBuffer;
+	batch:attachAttribute( "mData", mesh );
+	return batch, mesh;
 end
-
 
 -- PUBLIC API
 
 MapSceneRenderer.init = function( self, mapScene )
 	self._mapScene = mapScene;
 	self._pixelWidth, self._pixelHeight, self._originX, self._originY = getPixelDimensions( self, mapData );
-	self._tilesBatch = createTileBatch( self );
-	self._mapZBuffer = createMapZBuffer( self );
+	self._tilesBatch, self._tilesMesh = createTileBatch( self );
+
+	self._depthWriteShader = love.graphics.newShader( depthWriteShader );
 	self._outlineShader = love.graphics.newShader( outlineShader );
 	self._depthSortShader = love.graphics.newShader( depthSortShader );
-	self._screenZBuffer = love.graphics.newCanvas( 1, 1 );
-	self._surfaceTile = Assets:getImage( "assets/code/water/surface.png" );
+	self._waterShader = love.graphics.newShader( waterShader );
+	self._debugZBufferShader = love.graphics.newShader( debugZBufferShader );
+
+	local surfaceTile = Assets:getImage( "assets/code/water/surface.png" );
+	local mapWidth, mapHeight = mapScene:getMap():getDimensions();
+	self._waterBatch = love.graphics.newSpriteBatch( surfaceTile, mapWidth * mapHeight, "stream" );
+	self._waterMesh = love.graphics.newMesh( { { "mData", "byte", 4 } }, 4 * self._waterBatch:getBufferSize(), "fan", "stream" );
+	self._waterBatch:attachAttribute( "mData", self._waterMesh );
 end
 
-MapSceneRenderer.draw = function( self )
+MapSceneRenderer.drawScreen = function( self )
 
+	local camera = self._mapScene:getCamera();
 	local map = self._mapScene:getMap();
-
-	love.graphics.clear(  120, 120, 120 );
-
-	-- Draw tiles
-	love.graphics.draw( self._tilesBatch );
-
-	-- Draw outlines
-	love.graphics.push();
-	love.graphics.translate( -self._originX, -self._originY );
-	love.graphics.setColor( 0, 40, 100 );
-	love.graphics.setShader( self._outlineShader );
-	self._outlineShader:send( "vDelta", 1 / self._mapZBuffer:getHeight() );
-	love.graphics.draw( self._mapZBuffer );
-	love.graphics.pop();
+	local mapWidth, mapHeight = map:getDimensions();
+	local tileWidth, tileHeight, tileAltitude = map:getTileDimensions();
 
 	-- Make sure we have a zBuffer canvas to draw too
-	local zBufferWidth, zBufferHeight = self._screenZBuffer:getDimensions();
+	local zBufferWidth, zBufferHeight = 0, 0;
+	if self._screenZBuffer then
+		zBufferWidth, zBufferHeight = self._screenZBuffer:getDimensions();
+	end
 	local windowWidth, windowHeight = GFXConfig:getWindowSize();
 	if zBufferWidth ~= windowWidth or zBufferHeight ~= windowHeight then
 		Log:info( "Re-allocating MapScene Z Buffer" );
 		self._screenZBuffer = love.graphics.newCanvas( windowWidth, windowHeight );
+		self._screenZBuffer:setFilter( "nearest", "nearest" );
 	end
 
-	-- Draw mapZBuffer onto screenZBuffer
+	love.graphics.clear( 120, 120, 120 );
+	love.graphics.setColor( 255, 255, 255 );
 	love.graphics.setCanvas( self._screenZBuffer );
 	love.graphics.clear();
-	love.graphics.setShader();
-	love.graphics.setColor( 255, 255, 255 );
-	love.graphics.setBlendMode( "replace", "premultiplied" );
-	love.graphics.draw( self._mapZBuffer, -self._originX, -self._originY );
+
+
+	love.graphics.push();
+	camera:applyTransforms();
+
+	-- Draw tiles on screen
 	love.graphics.setCanvas();
+	love.graphics.draw( self._tilesBatch );
 
-	-- Setup depth sort shader
-	local w, h = GFXConfig:getWindowSize();
-	love.graphics.setShader( self._depthSortShader );
-	self._depthSortShader:send( "zBuffer", self._screenZBuffer );
-	self._depthSortShader:send( "screenSize", { w, h } );
+	-- Draw tiles on ZBuffer
+	love.graphics.setCanvas( self._screenZBuffer );
+	love.graphics.setBlendMode( "replace", "premultiplied" );
+	self._depthWriteShader:send( "zBuffer", self._screenZBuffer );
+	love.graphics.setShader( self._depthWriteShader );
+	love.graphics.draw( self._tilesBatch );
+
+	love.graphics.pop();
+
+	-- Draw outlines on screen
+	love.graphics.setCanvas();
 	love.graphics.setBlendMode( "alpha", "alphamultiply" );
+	self._outlineShader:send( "vDelta", camera:getZoom() );
+	love.graphics.setShader( self._outlineShader );
+	love.graphics.setColor( 0, 0, 0, 255 );
+	love.graphics.draw( self._screenZBuffer );
 
-	-- Draw water
+	love.graphics.push();
+	camera:applyTransforms();
+
+	-- Draw water on screen
+	self._waterBatch:clear();
+	local quad = love.graphics.newQuad( 0, 0, 1, 1, tileWidth, tileHeight );
 	local waterSim = self._mapScene:getWaterSim();
-	local w, h = map:getDimensions();
-	local tileWidth, tileHeight, tileAltitude = map:getTileDimensions();
-	for x = 0, w - 1 do
-		for y = 0, h - 1 do
+	for x = 0, mapWidth - 1 do
+		for y = 0, mapHeight - 1 do
 			local h = math.ceil( waterSim:getWaterLevelAt( x, y ) * tileAltitude );
 			if h > 0 then
-				love.graphics.setColor( 0, 180, 200, h * 80 );
+				local z = math.ceil( waterSim:getWaterLevelAt( x, y ) + map:getAltitude( x, y ) );
 				local tx, ty = map:tilesToPixels( x, y );
-				self._depthSortShader:send( "depthThreshold", x + y );
-				love.graphics.draw( self._surfaceTile, tx - tileWidth / 2, ty - 0.5 * tileHeight );
-				love.graphics.rectangle( "fill", tx - tileWidth / 2, ty - h, tileWidth, h );
-				love.graphics.draw( self._surfaceTile, tx - tileWidth / 2, ty - 0.5 * tileHeight - h );
+				local px, py = tx - tileWidth / 2, ty - 0.5 * tileHeight - h;
+				quad:setViewport( 0, 0, tileWidth, h + tileHeight );
+				local id = self._waterBatch:add( quad, px, py );
+				for i = 1, 4 do
+					self._waterMesh:setVertex( 4 * ( id - 1 ) + i, x, y, z, 0 );
+				end
 			end
 		end
 	end
 
-	-- Draw entities
+	love.graphics.setShader( self._waterShader );
+	love.graphics.setColor( 0, 100, 150, 255 );
+	self._waterShader:send( "zBuffer", self._screenZBuffer );
+	love.graphics.setBlendMode( "alpha", "alphamultiply" );
+	love.graphics.draw( self._waterBatch );
+
+	-- Draw water on ZBuffer
+	love.graphics.setCanvas( self._screenZBuffer );
+	love.graphics.setBlendMode( "replace", "premultiplied" );
+	self._depthWriteShader:send( "zBuffer", self._screenZBuffer );
+	love.graphics.setShader( self._depthWriteShader );
+	love.graphics.draw( self._waterBatch );
+
+	-- Draw entities on screen
+	love.graphics.setCanvas();
+	love.graphics.setBlendMode( "alpha", "alphamultiply" );
+	self._depthSortShader:send( "zBuffer", self._screenZBuffer );
+	love.graphics.setShader( self._depthSortShader );
+
 	love.graphics.setColor( 255, 255, 255 );
 	for _, entity in ipairs( self._mapScene:getDrawableEntities() ) do
 		local depth = entity:getPosition():getDepth();
@@ -259,8 +310,23 @@ MapSceneRenderer.draw = function( self )
 		entity:draw();
 	end
 
+	love.graphics.pop();
+
+	-- self:drawZBuffer();
+
+	-- print("");
+	-- local stats = love.graphics.getStats();
+	-- for k, v in pairs( stats ) do
+	-- 	print(k, v);
+	-- end
 end
 
-
+MapSceneRenderer.drawZBuffer = function( self )
+	love.graphics.setCanvas();
+	love.graphics.setShader( self._debugZBufferShader );
+	love.graphics.setColor( 255, 255, 255, 255 );
+	love.graphics.setBlendMode( "alpha", "alphamultiply" );
+	love.graphics.draw( self._screenZBuffer );
+end
 
 return MapSceneRenderer;

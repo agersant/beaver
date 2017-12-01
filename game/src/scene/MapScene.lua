@@ -106,10 +106,7 @@ end
 
 MapScene.draw = function( self )
 	MapScene.super.draw( self );
-	love.graphics.push();
-	self._camera:applyTransforms();
-	self._renderer:draw();
-	love.graphics.pop();
+	self._renderer:drawScreen();
 end
 
 MapScene.spawn = function( self, entity )
