@@ -73,10 +73,10 @@ local outlineShader = [[
 	const int slopeNE = 1 << 3;
 
 	extern float vDelta;
-	vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords)
+	vec4 effect(vec4 color, Image texture, vec2 textureCoords, vec2 screenCoords)
 	{
-		vec4 local = Texel(texture, texture_coords);
-		vec4 down = Texel(texture, texture_coords + vec2( 0, vDelta / love_ScreenSize.y ) );
+		vec4 local = Texel(texture, textureCoords);
+		vec4 down = Texel(texture, textureCoords + vec2( 0, vDelta / love_ScreenSize.y ) );
 		if ( local.z >= down.z )
 		{
 			discard;
@@ -99,25 +99,61 @@ local outlineShader = [[
 ]];
 
 local waterShader = [[
+
 	#ifdef VERTEX
 		attribute vec4 mData;
+		attribute vec4 waterData;
 		varying out vec4 data;
-		vec4 position( mat4 transform_projection, vec4 vertex_position )
+		varying out vec4 pixelWaterData;
+		vec4 position( mat4 transformProjection, vec4 vertexPosition )
         {
 			data = mData;
-            return transform_projection * vertex_position;
+			pixelWaterData = waterData;
+            return transformProjection * vertexPosition;
         }
 	#endif
 
 	#ifdef PIXEL
 		extern Image zBuffer;
+		extern vec2 tileSize;
 		in vec4 data;
+		in vec4 pixelWaterData;
 		vec4 effect( vec4 color, Image texture, vec2 textureCoords, vec2 screenCoords )
 		{
+
+			textureCoords.x = int( textureCoords.x );
+			textureCoords.y = int( textureCoords.y );
+
+			// Drop top-left corner pixels
+			if ( textureCoords.x + 2 < tileSize.x / 2 - 2 * textureCoords.y )
+			{
+				discard;
+			}
+
+			// Drop top-right corner pixels
+			if ( textureCoords.x - 1 > tileSize.x / 2 + 2 * textureCoords.y )
+			{
+				discard;
+			}
+
+			// Drop bottom-left corner pixels
+			if ( textureCoords.y > pixelWaterData.y * 255 - tileSize.y / 2 + textureCoords.x / 2 )
+			{
+				discard;
+			}
+
+			// Drop bottom-right corner pixels
+			if ( textureCoords.y + 0.5 > pixelWaterData.y * 255 + tileSize.y / 2 - textureCoords.x / 2 )
+			{
+				discard;
+			}
+
+			// Drop Z-sorted pixels
 			vec4 zBufferRead = Texel( zBuffer, screenCoords / love_ScreenSize.xy );
 			if ( int( zBufferRead.x * 255 ) + int( zBufferRead.y * 255 ) > int( data.x * 255 ) + int( data.y * 255 ) ) {
 				discard;
 			}
+
 			vec4 local = Texel( texture, textureCoords );
 			return local * color;
 		}
@@ -208,8 +244,14 @@ MapSceneRenderer.init = function( self, mapScene )
 	local surfaceTile = Assets:getImage( "assets/code/water/surface.png" );
 	local mapWidth, mapHeight = mapScene:getMap():getDimensions();
 	self._waterBatch = love.graphics.newSpriteBatch( surfaceTile, mapWidth * mapHeight, "stream" );
-	self._waterMesh = love.graphics.newMesh( { { "mData", "byte", 4 } }, 4 * self._waterBatch:getBufferSize(), "fan", "stream" );
+	self._waterMesh = love.graphics.newMesh( {
+		{ "mData", "byte", 4 },
+		{ "waterData", "byte", 4 },
+		{ "VertexTexCoord", "float", 2 },
+	}, 4 * self._waterBatch:getBufferSize(), "fan", "stream" );
 	self._waterBatch:attachAttribute( "mData", self._waterMesh );
+	self._waterBatch:attachAttribute( "waterData", self._waterMesh );
+	self._waterBatch:attachAttribute( "VertexTexCoord", self._waterMesh );
 end
 
 MapSceneRenderer.drawScreen = function( self )
@@ -266,7 +308,7 @@ MapSceneRenderer.drawScreen = function( self )
 
 	-- Draw water on screen
 	self._waterBatch:clear();
-	local quad = love.graphics.newQuad( 0, 0, 1, 1, tileWidth, tileHeight );
+	local quad = love.graphics.newQuad( 0, 0, 0, 0, tileWidth, tileHeight );
 	local waterSim = self._mapScene:getWaterSim();
 	for x = 0, mapWidth - 1 do
 		for y = 0, mapHeight - 1 do
@@ -278,15 +320,24 @@ MapSceneRenderer.drawScreen = function( self )
 				quad:setViewport( 0, 0, tileWidth, h + tileHeight );
 				local id = self._waterBatch:add( quad, px, py );
 				for i = 1, 4 do
-					self._waterMesh:setVertex( 4 * ( id - 1 ) + i, x, y, z, 0 );
+					self._waterMesh:setVertex( 4 * ( id - 1 ) + i,
+						-- Map data
+						x, y, z, 0,
+						-- Water data
+						0, h + tileHeight, 0, 0,
+						-- VertexTexCoord
+						( i == 3 or i == 4 ) and tileWidth or 0,
+						( i == 2 or i == 4 ) and ( h + tileHeight ) or 0
+					);
 				end
 			end
 		end
 	end
 
 	love.graphics.setShader( self._waterShader );
-	love.graphics.setColor( 0, 100, 150, 255 );
+	love.graphics.setColor( 0, 100, 150, 200 );
 	self._waterShader:send( "zBuffer", self._screenZBuffer );
+	self._waterShader:send( "tileSize", { tileWidth, tileHeight } );
 	love.graphics.setBlendMode( "alpha", "alphamultiply" );
 	love.graphics.draw( self._waterBatch );
 
