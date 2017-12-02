@@ -37,7 +37,7 @@ Camera.setPosition = function( self, x, y )
 end
 
 Camera.zoomIn = function( self )
-	self._zoom = math.min( 5, self._zoom + 1 );
+	self._zoom = math.min( 16, self._zoom + 1 );
 end
 
 Camera.zoomOut = function( self )
